@@ -6,7 +6,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
     "start": "node dist/app.js",
-    "dev": "nodemon src/app.ts"
+    "dev": "nodemon src/app.ts",
+    "matricula": "node dist/runmatricula.js",
+    "matriculaback": "node dist/runmatriculabackup.js"
   },
   "keywords": [],
   "author": "",

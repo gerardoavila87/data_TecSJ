@@ -1,7 +1,8 @@
 import { coreDB, dataDB } from '../database/connection';
 import { QueryTypes } from 'sequelize';
-import { queries } from '../database/procedenciaQueries';
+import { getProcedenciaQuery, queries } from '../database/procedenciaQueries';
 import { ProcedenciaType } from '../models/procedenciaModel';
+import { getIdsFechas } from './DimFechaServices';
 
 export const getIdProcedenciaData = async (procedencia: ProcedenciaType) => {
     try {
@@ -61,7 +62,87 @@ export const setProcedenciaData = async (procedencia: ProcedenciaType) => {
         });
         return result;
     } catch (error) {
-        console.error("Error al INSERTAR la Procedencia:", error);
-        throw error; // Lanza el error para que pueda ser manejado por el controlador
+        console.error("Error al consultar la Procedencia:", error);
+        throw error;
     }
 };
+
+interface FechaId {
+    idFecha: number;
+}
+
+export const getAllProcedencias = async (unidad?: string, carreras?: string, inicio?: string, fin?: string) => {
+    try {
+        let ids: number[] = [];
+        if (inicio && fin) {
+            const resIds = await getIdsFechas(inicio, fin) as FechaId[];
+            ids = resIds.map(item => item.idFecha)
+        }
+
+        const replacements: any = {
+            ...(carreras && { carreras }),
+            ...(unidad && { unidad }),
+            ...(ids.length > 0 && { ids })
+        };
+        const query = getProcedenciaQuery(unidad, carreras, ids);
+        const result = await dataDB.query(query, {
+            type: QueryTypes.SELECT,
+            replacements
+        });
+        return result;
+    } catch (error) {
+        console.error("Error al consultar la Procedencia:", error);
+        throw error;
+    }
+}
+
+export const getProcedencias = async () => {
+    try {
+        const result = await dataDB.query(queries.getProcedencias, {
+            type: QueryTypes.SELECT
+        });
+        return result;
+    } catch (error) {
+        console.error("Error al consultar la Procedencia:", error);
+        throw error;
+    }
+}
+
+export const getProcedenciasFecha = async (fechaInicio: string, fechaFin: string) => {
+    try {
+        const result = await dataDB.query(queries.getProcedenciasFecha, {
+            type: QueryTypes.SELECT
+        });
+        return result;
+    } catch (error) {
+        console.error("Error al consultar la Procedencia:", error);
+        throw error;
+    }
+}
+
+export const getProcedenciasUnidad = async (unidad: string) => {
+    try {
+        const result = await dataDB.query(queries.getProcedenciasUnidad, {
+            type: QueryTypes.SELECT,
+            replacements: {
+                unidad: unidad
+            }
+        });
+        return result;
+    } catch (error) {
+        console.error("Error al consultar la Procedencia:", error);
+        throw error;
+    }
+}
+
+export const getProcedenciasUnidadFecha = async (unidad: string, fechaInicio: string, fechaFin: string) => {
+    try {
+        const result = await dataDB.query(queries.getProcedenciasUnidadFecha, {
+            type: QueryTypes.SELECT
+        });
+        return result;
+    } catch (error) {
+        console.error("Error al consultar la Procedencia:", error);
+        throw error;
+    }
+}

@@ -1,7 +1,8 @@
 import { coreDB, dataDB } from '../database/connection';
 import { QueryTypes } from 'sequelize';
-import { queries } from '../database/estudianteQueries';
+import { queries, getEstudiantesQuery } from '../database/estudianteQueries';
 import { EstudianteType } from '../models/estudianteModel'
+import { getIdsFechas } from './DimFechaServices';
 
 export const getIdEstudianteData = async (control: string) => {
     try {
@@ -69,11 +70,43 @@ export const setEstudianteData = async (estudiante: EstudianteType) => {
                 correo: estudiante.correo,
                 indigena: estudiante.indigena
             }
-        })
+        });
         const idEstudiante = getIdEstudianteData(estudiante.nocontrol);
         return idEstudiante;
     } catch (error) {
         console.error("Error al INSERTAR el estudiante:", error);
         throw error; // Lanza el error para que pueda ser manejado por el controlador
     }
+}
+
+export const getEstudiantes = async (tipo?: string, unidad?: string, fechaInicio?: string, fechaFin?: string, carreras?: string) => {
+    try {
+        let ids: number[] = [];
+
+        const replacements: any = {};
+        if (fechaInicio && fechaFin) {
+            const idsRes = await getIdsFechas(fechaInicio, fechaFin) as FechaId[];
+            ids = idsRes.map(item => item.idFecha);
+        }
+
+        const query = getEstudiantesQuery(tipo, unidad, ids, carreras);
+
+        if (unidad != 'unidad') replacements.unidad = unidad;
+        if (carreras) replacements.carreras = carreras;
+        if (ids.length > 0) replacements.ids = ids;
+        console.log(query);
+        console.log(ids);
+        const result = await dataDB.query(query, {
+            type: QueryTypes.SELECT,
+            replacements
+        });
+        return result;
+    } catch (error) {
+        console.error("Error al CONSULTAR el estudiante:", error);
+        throw error;
+    }
+}
+
+interface FechaId {
+    idFecha: number;
 }

@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { getAllCarrerasUO, getAllCarrerasUR, getCarreraUO, getCarreraUR } from '../services/DimCarreraServices';
+import { getAllCarrerasUO, getAllCarrerasUR, getCarreraUO, getCarreraUR, getAllCarrerasUReal } from '../services/DimCarreraServices';
 
 export const getAllCarrerasO = async (req: Request, res: Response) => {
   try {
@@ -31,10 +31,20 @@ export const getAllCarrerasR = async (req: Request, res: Response) => {
   }
 };
 
+export const getAllCarrerasReal = async (req: Request, res: Response) => {
+  try {
+    const data = await getAllCarrerasUReal();
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: (error as Error).message });
+  }
+};
+
 export const getCarreraR = async (req: Request, res: Response) => {
   try {
     const { unidad } = req.params;
-    const data = await getCarreraUR(unidad);
+    const { inicio, fin } = req.query;
+    const data = await getCarreraUR(unidad, inicio as string, fin as string);
     res.json(data);
   } catch (error) {
     res.status(500).json({ error: (error as Error).message });

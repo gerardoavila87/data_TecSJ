@@ -21,11 +21,12 @@ export const queries = {
     INSERT INTO DimUnidades (idUnidad, clave, nombre)
         VALUES (0, :clave, :nombre);`,
   getAllUnidadReal: `
-    SELECT du.nombre as unidad
+    SELECT du.clave, du.nombre as unidad,  du.clase, du.estado
     FROM FactMatricula fm 
     JOIN DimUnidades du ON du.idUnidad = fm.idUnidadReal 
     WHERE ISNULL(fm.idFechaTermino)
-    GROUP BY fm.idUnidadReal`,
+    GROUP BY fm.idUnidadReal
+    ORDER BY du.clase, du.nombre`,
   getAllUnidadOficial: `
     SELECT du.nombre as unidad
     FROM FactMatricula fm 

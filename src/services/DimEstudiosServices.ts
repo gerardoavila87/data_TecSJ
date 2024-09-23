@@ -1,7 +1,8 @@
 import { coreDB, dataDB } from '../database/connection';
 import { QueryTypes } from 'sequelize';
-import { queries } from '../database/estudioQueries';
+import { getEstudiosQuery, queries } from '../database/estudioQueries';
 import { EstudioType } from '../models/estudioModel'
+import { getIdsFechas } from './DimFechaServices';
 
 export const getIdEstudioData = async (escuelaR: string) => {
     try {
@@ -70,3 +71,113 @@ export const setEstudioData = async (estudio: EstudioType) => {
         throw error; // Lanza el error para que pueda ser manejado por el controlador
     }
 }
+
+interface FechaId {
+    idFecha: number;
+}
+
+export const getAllEstudio = async (unidad?:string, carreras?: string, inicio?: string, fin?: string) => {
+    try {
+        let ids: number[] = [];
+        const replacements: any = {};
+
+        if (inicio && fin) {
+            const idsRes = await getIdsFechas(inicio, fin) as FechaId[];
+            ids = idsRes.map(item => item.idFecha);
+        }
+
+        const query = getEstudiosQuery(unidad, carreras, ids);
+
+        console.log(unidad);
+        console.log(query);
+
+        if (carreras) replacements.carreras = carreras;
+        if (unidad) replacements.unidad = unidad;
+        if (ids.length > 0) replacements.ids = ids;
+
+        const estudios = await dataDB.query(query, {
+            type: QueryTypes.SELECT,
+            replacements
+        });
+
+        return estudios;
+    } catch (error) {
+        console.error("Error obteniendo el core.estudio:", error);
+        throw error;
+    }
+};
+
+export const getEstudioUR = async () => {
+    try {
+        const estudios = await dataDB.query(queries.getEstudiosUR, {
+            type: QueryTypes.SELECT
+        });
+
+        return estudios;
+
+    } catch (error) {
+        console.error("Error obteniendo el core.estudio:", error);
+        throw error;
+    }
+};
+
+export const getEstudioUO = async () => {
+    try {
+        const estudios = await dataDB.query(queries.getEstudiosUO, {
+            type: QueryTypes.SELECT
+        });
+
+        return estudios;
+
+    } catch (error) {
+        console.error("Error obteniendo el core.estudio:", error);
+        throw error;
+    }
+};
+
+export const getEstudioUOC = async (unidad: string) => {
+    try {
+        const estudios = await dataDB.query(queries.getEstudiosUOC, {
+            type: QueryTypes.SELECT,
+            replacements: {
+                unidad: unidad
+            }
+        });
+
+        return estudios;
+
+    } catch (error) {
+        console.error("Error obteniendo el core.estudio:", error);
+        throw error;
+    }
+};
+
+export const getEstudioURC = async (unidad: string) => {
+    try {
+        const estudios = await dataDB.query(queries.getEstudiosURC, {
+            type: QueryTypes.SELECT,
+            replacements: {
+                unidad: unidad
+            }
+        });
+        return estudios;
+    } catch (error) {
+        console.error("Error obteniendo el core.estudio:", error);
+        throw error;
+    }
+};
+
+export const getEstudioURCarrera = async (unidad: string) => {
+    try {
+        const estudios = await dataDB.query(queries.getEstudiosURCarrera, {
+            type: QueryTypes.SELECT,
+            replacements: {
+                unidad: unidad
+            }
+        });
+        return estudios;
+    } catch (error) {
+        console.error("Error obteniendo el core.estudio:", error);
+        throw error;
+    }
+};

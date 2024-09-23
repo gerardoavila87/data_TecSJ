@@ -3,7 +3,7 @@ import { getAllUnidadO, getAllUnidadR } from '../controllers/UnidadController';
 
 const router = Router();
 
-router.get('/unidadesO', getAllUnidadO);
-router.get('/UnidadesR', getAllUnidadR);
+router.get('/unidades/Oficial', getAllUnidadO);
+router.get('/Unidades/Real', getAllUnidadR);
 
 export default router;

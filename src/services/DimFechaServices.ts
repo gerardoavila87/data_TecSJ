@@ -9,18 +9,15 @@ export const getFechaAct = async () => {
         let idFecha: { id: string }[] = await dataDB.query(queries.getFechaAct, {
             type: QueryTypes.SELECT,
         });
-
         if (idFecha.length === 0) {
             const periodoR = await coreDB.query(queries.getPeriodo, {
                 type: QueryTypes.SELECT,
             }) as { periodo: string }[];
-            
             if (periodoR.length > 0) {
                 await dataDB.query(queries.setFechaAct, {
                     type: QueryTypes.INSERT,
-                    replacements: { period:  periodoR[0].periodo }
+                    replacements: { period: periodoR[0].periodo }
                 });
-                
                 idFecha = await dataDB.query(queries.getFechaAct, {
                     type: QueryTypes.SELECT,
                 }) as { id: string }[];
@@ -50,3 +47,46 @@ export const getFechaData = async (idReq: string): Promise<FechaType[]> => {
         throw error;
     }
 };
+
+export const getIdsFechas = async (fechaInicio: string, fechaFin: string) => {
+    try {
+        const Ids = await dataDB.query(queries.getIdsFechas, {
+            type: QueryTypes.SELECT,
+            replacements: {
+                fechaInicio: fechaInicio,
+                fechaFin: fechaFin
+            }
+        });
+        return Ids;
+    } catch (error) {
+        console.error("Error obteniendo los Ids de las Fechas:", error);
+        throw error;
+    }
+}
+
+export const getAllFechas = async (periodo: string) => {
+    try {
+        const fechas = await dataDB.query(queries.getAllFechas, {
+            type: QueryTypes.SELECT,
+            replacements: {
+                periodo: periodo
+            }
+        });
+        return fechas;
+    } catch (error) {
+        console.error("Error obteniendo las Fechas:", error);
+        throw error;
+    }
+}
+
+export const getPeriodo = async () => {
+    try {
+        const periodo = await coreDB.query(queries.getPeriodo, {
+            type: QueryTypes.SELECT
+        }) as { periodo: string }[];
+        return periodo[0].periodo;
+    } catch (error) {
+        console.error("Error obteniendo el periodo:", error);
+        throw error;
+    }
+}

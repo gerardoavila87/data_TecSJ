@@ -1,11 +1,12 @@
 import { Router } from 'express';
-import { getAllCarrerasO, getAllCarrerasR, getCarreraO, getCarreraR } from '../controllers/CarreraController';
+import { getAllCarrerasO, getAllCarrerasR, getCarreraO, getCarreraR, getAllCarrerasReal } from '../controllers/CarreraController';
 
 const router = Router();
 
-router.get('/carrerasO/:unidad', getAllCarrerasO);
-router.get('/carreraO/:unidad', getCarreraO);
-router.get('/carrerasR/:unidad', getAllCarrerasR);
-router.get('/carreraR/:unidad', getCarreraR);
+router.get('/carreras/Oficial/:unidad', getAllCarrerasO);
+router.get('/carrera/Oficial/:unidad', getCarreraO);
+router.get('/carreras/Real/:unidad', getAllCarrerasR);
+router.get('/carrera/Real/:unidad', getCarreraR);
+router.get('/carreras/Real', getAllCarrerasReal);
 
 export default router;

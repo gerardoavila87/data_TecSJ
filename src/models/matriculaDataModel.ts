@@ -10,5 +10,5 @@ export interface MatriculaDataType {
     idFechaInicio: string | null;
     idFechaTermino: string | null;
     semestre: string | null;
-    estatus: string | null;
+    status: string | null;
 }

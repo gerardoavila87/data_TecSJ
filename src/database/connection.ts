@@ -10,7 +10,24 @@ const coreDB = new Sequelize(
   {
     host: process.env.DB_HOST,
     dialect: 'mariadb',
-    logging: false
+    logging: false,
+    dialectOptions: {
+      connectTimeout: 20000 // 20 segundos
+    }
+  }
+);
+
+const coreBackupDB = new Sequelize(
+  process.env.COREBACKUP_DB_NAME as string,
+  process.env.DB_USER as string,
+  process.env.DB_PASSWORD,
+  {
+    host: process.env.DB_HOST,
+    dialect: 'mariadb',
+    logging: false,
+    dialectOptions: {
+      connectTimeout: 20000 // 20 segundos
+    }
   }
 );
 
@@ -21,21 +38,27 @@ const dataDB = new Sequelize(
   {
     host: process.env.DB_HOST,
     dialect: 'mariadb',
-    logging: false
+    logging: false,
+    dialectOptions: {
+      connectTimeout: 20000 // 20 segundos
+    }
   }
 );
 
 const connectDB = async () => {
   try {
     await coreDB.authenticate();
-    console.log('Connected to core database successfully.');
-    
+    console.log('CoreDB connected to core database successfully.');
     await dataDB.authenticate();
-    console.log('Connected to data database successfully.');
+    console.log('DataDB Connected to data database successfully.');
+/*
+    await coreBackupDB.authenticate();
+    console.log('CoreDB connected to coreBackupDB database successfully.');
+  */
   } catch (error) {
     console.error('Unable to connect to the databases:', error);
     process.exit(1);
   }
 };
 
-export { coreDB, dataDB, connectDB };
+export { coreDB, dataDB, coreBackupDB, connectDB };

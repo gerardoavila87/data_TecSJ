@@ -1,6 +1,11 @@
 import { coreDB, dataDB } from '../database/connection';
 import { QueryTypes } from 'sequelize';
-import { queries } from '../database/discapacidadQueries';
+import { getDiscapacidadCarreraQuery, queries } from '../database/discapacidadQueries';
+import { getIdsFechas } from './DimFechaServices';
+
+interface FechaId {
+    idFecha: number;
+}
 
 export const getIdDiscapacidadData = async (discapacidadR: string) => {
     try {
@@ -64,9 +69,9 @@ export const setDiscapacidadData = async (discapacidadR: string) => {
     }
 }
 
-export const getDiscapacidadC = async (unidad: string, carrera: string) => {
+export const getDiscapacidadUOC = async (unidad: string) => {
     try {
-        const result = await dataDB.query(queries.getDiscapacidadesC, {
+        const result = await dataDB.query(queries.getDiscapacidadesUOC, {
             type: QueryTypes.SELECT,
             replacements: {
                 unidad: unidad
@@ -79,9 +84,9 @@ export const getDiscapacidadC = async (unidad: string, carrera: string) => {
     }
 };
 
-export const getDiscapacidadU = async (unidad: string) => {
+export const getDiscapacidadURC = async (unidad: string) => {
     try {
-        const result = await dataDB.query(queries.getDiscapacidadesU, {
+        const result = await dataDB.query(queries.getDiscapacidadesURC, {
             type: QueryTypes.SELECT,
             replacements: {
                 unidad: unidad
@@ -90,6 +95,30 @@ export const getDiscapacidadU = async (unidad: string) => {
         return result;
     } catch (error) {
         console.error("Error obteniendo el ID de la carrera:", error);
+        throw error; // Lanza el error para que pueda ser manejado por el controlador
+    }
+};
+
+export const getDiscapacidadUR = async () => {
+    try {
+        const result = await dataDB.query(queries.getDiscapacidadesUR, {
+            type: QueryTypes.SELECT
+        });
+        return result;
+    } catch (error) {
+        console.error("Error obteniendo las discapacidades", error);
+        throw error; // Lanza el error para que pueda ser manejado por el controlador
+    }
+};
+
+export const getDiscapacidadUO = async () => {
+    try {
+        const result = await dataDB.query(queries.getDiscapacidadesUO, {
+            type: QueryTypes.SELECT
+        });
+        return result;
+    } catch (error) {
+        console.error("Error obteniendo las discapacidades", error);
         throw error; // Lanza el error para que pueda ser manejado por el controlador
     }
 };
@@ -103,5 +132,66 @@ export const getAllDiscapacidad = async () => {
     } catch (error) {
         console.error("Error obteniendo el ID de la carrera:", error);
         throw error; // Lanza el error para que pueda ser manejado por el controlador
+    }
+};
+
+export const getDiscapacidadURFecha = async (fechaInicio: string, fechaFin: string) => {
+    try {
+        const idsRes = await getIdsFechas(fechaInicio, fechaFin) as FechaId[];
+        const ids = idsRes.map(item => item.idFecha);
+        const result = await dataDB.query(queries.getDiscapacidadesURFecha, {
+            type: QueryTypes.SELECT,
+            replacements: {
+                ids: ids
+            }
+        });
+        return result;
+    } catch (error) {
+        console.error("Error obteniendo las discapacidades", error);
+        throw error; // Lanza el error para que pueda ser manejado por el controlador
+    }
+};
+
+export const getDiscapacidadURCFecha = async (unidad: string, fechaInicio: string, fechaFin: string) => {
+    try {
+        const idsRes = await getIdsFechas(fechaInicio, fechaFin) as FechaId[];
+        const ids = idsRes.map(item => item.idFecha);
+        const result = await dataDB.query(queries.getDiscapacidadesURFecha, {
+            type: QueryTypes.SELECT,
+            replacements: {
+                unidad: unidad,
+                ids: ids
+            }
+        });
+        return result;
+    } catch (error) {
+        console.error("Error obteniendo el ID de la carrera:", error);
+        throw error; // Lanza el error para que pueda ser manejado por el controlador
+    }
+};
+
+export const getDiscapacidadCarrera = async (unidad?: string, fechaInicio?: string, fechaFin?: string) => {
+    try {
+        let ids: number[] = [];
+        let replacements: any = {};
+
+        if (fechaInicio && fechaFin) {
+            const idsRes = await getIdsFechas(fechaInicio, fechaFin) as FechaId[];
+            ids = idsRes.map(item => item.idFecha);
+        }
+
+        let query = getDiscapacidadCarreraQuery(unidad, ids);
+
+        if (ids.length > 0) replacements.ids = ids;
+        if (unidad) replacements.unidad = unidad;
+        const result = await dataDB.query(query, {
+            type: QueryTypes.SELECT,
+            replacements
+        });
+
+        return result;
+    } catch (error) {
+        console.error("Error obteniendo la discapacidad por carrera:", error);
+        throw error;
     }
 };
