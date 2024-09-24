@@ -84,13 +84,16 @@ export const getDiscapacidadUOC = async (unidad: string) => {
     }
 };
 
-export const getDiscapacidadURC = async (unidad: string) => {
+export const getDiscapacidadURC = async (unidad: string, periodo?: string) => {
     try {
+        const replacements: any = {};
+        let periodoActivo;
+        !periodo ? periodoActivo = await getPeriodo() : periodoActivo = periodo;
+        replacements.periodo = periodoActivo;
+        replacements.unidad = unidad;
         const result = await dataDB.query(queries.getDiscapacidadesURC, {
             type: QueryTypes.SELECT,
-            replacements: {
-                unidad: unidad
-            }
+            replacements
         });
         return result;
     } catch (error) {
@@ -123,14 +126,15 @@ export const getDiscapacidadUO = async () => {
     }
 };
 
-export const getAllDiscapacidad = async () => {
+export const getAllDiscapacidad = async (periodo?: string) => {
     try {
-        let periodo='2024A';
         let replacements: any = {};
         let periodoActivo;
         !periodo ? periodoActivo = await getPeriodo() : periodoActivo = periodo;
         replacements.periodo = periodoActivo;
-        const result = await dataDB.query(queries.getAllDiscapacidades, {
+        const query = queries.getAllDiscapacidades;
+        console.log(query);
+        const result = await dataDB.query(query, {
             type: QueryTypes.SELECT,
             replacements
         });
@@ -141,15 +145,18 @@ export const getAllDiscapacidad = async () => {
     }
 };
 
-export const getDiscapacidadURFecha = async (fechaInicio: string, fechaFin: string) => {
+export const getDiscapacidadURFecha = async (fechaInicio: string, fechaFin: string, periodo?: string) => {
     try {
         const idsRes = await getIdsFechas(fechaInicio, fechaFin) as FechaId[];
         const ids = idsRes.map(item => item.idFecha);
+        let replacements: any = {};
+        let periodoActivo;
+        !periodo ? periodoActivo = await getPeriodo() : periodoActivo = periodo;
+        replacements.periodo = periodoActivo;
+        replacements.ids = ids;
         const result = await dataDB.query(queries.getDiscapacidadesURFecha, {
             type: QueryTypes.SELECT,
-            replacements: {
-                ids: ids
-            }
+            replacements
         });
         return result;
     } catch (error) {
@@ -158,16 +165,19 @@ export const getDiscapacidadURFecha = async (fechaInicio: string, fechaFin: stri
     }
 };
 
-export const getDiscapacidadURCFecha = async (unidad: string, fechaInicio: string, fechaFin: string) => {
+export const getDiscapacidadURCFecha = async (unidad: string, fechaInicio: string, fechaFin: string, periodo?:string) => {
     try {
         const idsRes = await getIdsFechas(fechaInicio, fechaFin) as FechaId[];
         const ids = idsRes.map(item => item.idFecha);
+        let replacements: any = {};
+        let periodoActivo;
+        !periodo ? periodoActivo = await getPeriodo() : periodoActivo = periodo;
+        replacements.periodo = periodoActivo;
+        replacements.unidad = unidad;
+        replacements.ids = ids;
         const result = await dataDB.query(queries.getDiscapacidadesURFecha, {
             type: QueryTypes.SELECT,
-            replacements: {
-                unidad: unidad,
-                ids: ids
-            }
+            replacements
         });
         return result;
     } catch (error) {

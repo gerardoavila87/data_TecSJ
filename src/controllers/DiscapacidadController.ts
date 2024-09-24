@@ -6,10 +6,10 @@ export const getAllDiscapacidades = async (req: Request, res: Response) => {
     let data;
     const { unidad, inicio, fin, carreras, periodo } = req.query;
     if (carreras) data = await DiscapacidadServices.getDiscapacidadCarrera(carreras as string, inicio as string, fin as string, periodo as string);
-    else if (unidad) data = await DiscapacidadServices.getDiscapacidadURC(unidad as string);
-    else if (inicio && fin) data = await DiscapacidadServices.getDiscapacidadURFecha(inicio as string, fin as string);
-    else if (inicio && fin && unidad) data = await DiscapacidadServices.getDiscapacidadURCFecha(unidad as string, inicio as string, fin as string);
-    else data = await DiscapacidadServices.getAllDiscapacidad();
+    else if (unidad) data = await DiscapacidadServices.getDiscapacidadURC(unidad as string, periodo as string);
+    else if (inicio && fin) data = await DiscapacidadServices.getDiscapacidadURFecha(inicio as string, fin as string, periodo as string);
+    else if (inicio && fin && unidad) data = await DiscapacidadServices.getDiscapacidadURCFecha(unidad as string, inicio as string, fin as string, periodo as string);
+    else data = await DiscapacidadServices.getAllDiscapacidad(periodo as string);
 
     res.json(data);
   } catch (error) {

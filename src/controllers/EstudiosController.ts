@@ -4,8 +4,8 @@ import { getAllEstudio, getEstudioUR, getEstudioUO, getEstudioUOC, getEstudioURC
 export const getAllEstudios = async (req: Request, res: Response) => {
   try {
     let data;
-    const { inicio, fin, unidad, carreras } = req.query;
-    data = await getAllEstudio(unidad as string, carreras as string, inicio as string, fin as string);
+    const { inicio, fin, unidad, carreras, periodo } = req.query;
+    data = await getAllEstudio(unidad as string, carreras as string, inicio as string, fin as string, periodo as string);
     res.json(data);
   } catch (error) {
     res.status(500).json({ error: (error as Error).message });

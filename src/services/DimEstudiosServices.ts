@@ -2,7 +2,7 @@ import { coreDB, dataDB } from '../database/connection';
 import { QueryTypes } from 'sequelize';
 import { getEstudiosQuery, queries } from '../database/estudioQueries';
 import { EstudioType } from '../models/estudioModel'
-import { getIdsFechas } from './DimFechaServices';
+import { getIdsFechas, getPeriodo } from './DimFechaServices';
 
 export const getIdEstudioData = async (escuelaR: string) => {
     try {
@@ -76,7 +76,7 @@ interface FechaId {
     idFecha: number;
 }
 
-export const getAllEstudio = async (unidad?:string, carreras?: string, inicio?: string, fin?: string) => {
+export const getAllEstudio = async (unidad?:string, carreras?: string, inicio?: string, fin?: string, periodo?: string) => {
     try {
         let ids: number[] = [];
         const replacements: any = {};
@@ -87,7 +87,9 @@ export const getAllEstudio = async (unidad?:string, carreras?: string, inicio?: 
         }
 
         const query = getEstudiosQuery(unidad, carreras, ids);
-
+        let periodoActivo;
+        !periodo ? periodoActivo = await getPeriodo() : periodoActivo = periodo;
+        replacements.periodo = periodoActivo;
         console.log(unidad);
         console.log(query);
 

@@ -2,7 +2,7 @@ import { coreDB, dataDB } from '../database/connection';
 import { QueryTypes } from 'sequelize';
 import { queries, getEstudiantesQuery } from '../database/estudianteQueries';
 import { EstudianteType } from '../models/estudianteModel'
-import { getIdsFechas } from './DimFechaServices';
+import { getIdsFechas, getPeriodo } from './DimFechaServices';
 
 export const getIdEstudianteData = async (control: string) => {
     try {
@@ -79,7 +79,7 @@ export const setEstudianteData = async (estudiante: EstudianteType) => {
     }
 }
 
-export const getEstudiantes = async (tipo?: string, unidad?: string, fechaInicio?: string, fechaFin?: string, carreras?: string) => {
+export const getEstudiantes = async (tipo?: string, unidad?: string, fechaInicio?: string, fechaFin?: string, carreras?: string, periodo?: string) => {
     try {
         let ids: number[] = [];
 
@@ -90,11 +90,13 @@ export const getEstudiantes = async (tipo?: string, unidad?: string, fechaInicio
         }
 
         const query = getEstudiantesQuery(tipo, unidad, ids, carreras);
-
+        let periodoActivo;
+        !periodo ? periodoActivo = await getPeriodo() : periodoActivo = periodo;
+        replacements.periodo = periodoActivo;
         if (unidad != 'unidad') replacements.unidad = unidad;
         if (carreras) replacements.carreras = carreras;
         if (ids.length > 0) replacements.ids = ids;
-        console.log(query);
+        console.log(periodoActivo);
         console.log(ids);
         const result = await dataDB.query(query, {
             type: QueryTypes.SELECT,

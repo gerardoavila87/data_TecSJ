@@ -44,7 +44,8 @@ export const getEstudiantesQuery = (tipo?: string, unidad?: string, ids?: number
 
   query += `COUNT(fm.idMatricula) as cantidad 
        FROM FactMatricula fm
-       JOIN DimEstudiante de ON de.idEstudiante = fm.idEstudiante\n`;
+       JOIN DimEstudiante de ON de.idEstudiante = fm.idEstudiante
+       JOIN DimFecha df ON df.idFecha = fm.idFechaInicio\n`;
 
   if (unidad || carreras) {
     query += `JOIN DimUnidades du ON du.idUnidad = fm.idUnidadReal\n`;
@@ -61,6 +62,8 @@ export const getEstudiantesQuery = (tipo?: string, unidad?: string, ids?: number
   } else {
     query += `WHERE fm.idFechaTermino IS NULL\n`;
   }
+
+  query += `AND df.periodo = :periodo\n`;
 
   if (unidad && unidad !== 'unidad') {
     query += `AND du.nombre = :unidad\n`;

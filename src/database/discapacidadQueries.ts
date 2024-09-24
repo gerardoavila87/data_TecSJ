@@ -43,9 +43,11 @@ export const queries = {
        SELECT du.nombre as unidad, dd.nombre as discapacidad, COUNT(fm.idMatricula) as cantidad 
          FROM FactMatricula fm 
     LEFT JOIN DimDiscapacidades dd ON dd.IdDiscapacidad  = fm.idDiscapacidad
-         JOIN DimUnidades du ON du.idUnidad = fm.idUnidadReal  
+         JOIN DimUnidades du ON du.idUnidad = fm.idUnidadReal
+         JOIN DimFecha df ON df.idFecha = fm.idFechaInicio 
         WHERE ISNULL(fm.idFechaTermino)
           AND du.nombre = :unidad
+          AND df.periodo = :periodo
     GROUP BY fm.idDiscapacidad, fm.idUnidadReal
     ORDER BY du.nombre, dd.nombre`,
   getDiscapacidadesUOC: `
@@ -61,12 +63,14 @@ export const queries = {
        SELECT dd.nombre as discapacidad, COUNT(fm.idMatricula) as cantidad 
          FROM FactMatricula fm 
     LEFT JOIN DimDiscapacidades dd ON dd.IdDiscapacidad  = fm.idDiscapacidad
+         JOIN DimFecha df ON df.idFecha = fm.idFechaInicio
         WHERE fm.idFechaInicio IN (:ids)
           AND (fm.idFechaTermino IS NULL 
                OR fm.idFechaTermino > 
                (SELECT MAX(idFecha)
                   FROM DimFecha 
                  WHERE idFecha IN (:ids)))
+          AND df.periodo = :periodo
      GROUP BY fm.idDiscapacidad
      ORDER BY dd.nombre`,
   getDiscapacidadesURCFecha: `
@@ -101,7 +105,7 @@ export const getDiscapacidadCarreraQuery = (unidad?: string, ids?: number[]): st
                         FROM DimFecha 
                        WHERE idFecha IN (:ids)))\n`;
   } else query += `WHERE fm.idFechaTermino IS NULL\n`;
-  query += `AND df.periodo = :periodo`;
+  query += `AND df.periodo = :periodo\n`;
   if (unidad) query += `AND du.nombre = :unidad\n`;
 
   query += ` GROUP BY fm.idDiscapacidad, fm.idUnidadReal, fm.idCarrera 
