@@ -18,8 +18,10 @@ export const queries = {
   getAllDiscapacidades: `  
        SELECT dd.nombre, COUNT(fm.idMatricula) as cantidad
          FROM FactMatricula fm 
+         JOIN DimFecha df ON df.idFecha = fm.idFechaInicio 
     LEFT JOIN DimDiscapacidades dd ON dd.IdDiscapacidad  = fm.idDiscapacidad
         WHERE ISNULL(fm.idFechaTermino)
+        AND df.periodo = :periodo
      GROUP BY fm.idDiscapacidad`,
   getDiscapacidadesUR: `
       SELECT du.nombre as unidad, dd.nombre as discapacidad, COUNT(fm.idMatricula) as cantidad 
@@ -88,7 +90,8 @@ export const getDiscapacidadCarreraQuery = (unidad?: string, ids?: number[]): st
                  FROM FactMatricula fm 
                  JOIN DimDiscapacidades dd ON dd.IdDiscapacidad  = fm.idDiscapacidad
                  JOIN DimUnidades du ON du.idUnidad = fm.idUnidadReal  
-                 JOIN DimCarreras dc ON dc.idCarrera = fm.idCarrera\n`;
+                 JOIN DimCarreras dc ON dc.idCarrera = fm.idCarrera
+                 JOIN DimFecha df ON df.idFecha = fm.idFechaInicio\n`;
 
   if (Array.isArray(ids) && ids.length > 0) {
     query += `WHERE fm.idFechaInicio IN (:ids)
@@ -98,7 +101,7 @@ export const getDiscapacidadCarreraQuery = (unidad?: string, ids?: number[]): st
                         FROM DimFecha 
                        WHERE idFecha IN (:ids)))\n`;
   } else query += `WHERE fm.idFechaTermino IS NULL\n`;
-
+  query += `AND df.periodo = :periodo`;
   if (unidad) query += `AND du.nombre = :unidad\n`;
 
   query += ` GROUP BY fm.idDiscapacidad, fm.idUnidadReal, fm.idCarrera 

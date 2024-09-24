@@ -1,7 +1,7 @@
 import { coreDB, dataDB } from '../database/connection';
 import { QueryTypes } from 'sequelize';
 import { getDiscapacidadCarreraQuery, queries } from '../database/discapacidadQueries';
-import { getIdsFechas } from './DimFechaServices';
+import { getIdsFechas, getPeriodo } from './DimFechaServices';
 
 interface FechaId {
     idFecha: number;
@@ -125,12 +125,18 @@ export const getDiscapacidadUO = async () => {
 
 export const getAllDiscapacidad = async () => {
     try {
+        let periodo='2024A';
+        let replacements: any = {};
+        let periodoActivo;
+        !periodo ? periodoActivo = await getPeriodo() : periodoActivo = periodo;
+        replacements.periodo = periodoActivo;
         const result = await dataDB.query(queries.getAllDiscapacidades, {
-            type: QueryTypes.SELECT
+            type: QueryTypes.SELECT,
+            replacements
         });
         return result;
     } catch (error) {
-        console.error("Error obteniendo el ID de la carrera:", error);
+        console.error("Error obteniendo las discapacidades:", error);
         throw error; // Lanza el error para que pueda ser manejado por el controlador
     }
 };
@@ -170,7 +176,7 @@ export const getDiscapacidadURCFecha = async (unidad: string, fechaInicio: strin
     }
 };
 
-export const getDiscapacidadCarrera = async (unidad?: string, fechaInicio?: string, fechaFin?: string) => {
+export const getDiscapacidadCarrera = async (unidad?: string, fechaInicio?: string, fechaFin?: string, periodo?: string) => {
     try {
         let ids: number[] = [];
         let replacements: any = {};
@@ -181,7 +187,9 @@ export const getDiscapacidadCarrera = async (unidad?: string, fechaInicio?: stri
         }
 
         let query = getDiscapacidadCarreraQuery(unidad, ids);
-
+        let periodoActivo;
+        !periodo ? periodoActivo = await getPeriodo() : periodoActivo = periodo;
+        replacements.periodo = periodoActivo;
         if (ids.length > 0) replacements.ids = ids;
         if (unidad) replacements.unidad = unidad;
         const result = await dataDB.query(query, {
