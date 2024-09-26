@@ -100,7 +100,7 @@ export const getEstudiantes = async (tipo?: string, unidad?: string, fechaInicio
         console.log(ids);
         const result = await dataDB.query(query, {
             type: QueryTypes.SELECT,
-            replacements
+            replacements 
         });
         return result;
     } catch (error) {

@@ -70,14 +70,15 @@ WHERE idEstudio = :id;`,
 
 export const getEstudiosQuery = (unidad?: string, carreras?: string, ids?: number[]): string => {
   let query = `SELECT `;
-  
+
   if (unidad) query += `du.nombre AS unidad,`;
 
   if (carreras) query += `dc.clave, dc.abreviacion, dc.nombre AS carrera,`;
 
   query += ` de.nombre AS escuela, COUNT(fm.idMatricula) as cantidad
        FROM FactMatricula fm 
-       JOIN DimEstudios de ON de.idEstudio = fm.idEstudio\n`;
+       JOIN DimEstudios de ON de.idEstudio = fm.idEstudio
+       JOIN DimFecha df ON df.idFecha = fm.idFechaInicio\n`;
 
   if (unidad || carreras) query += `JOIN DimUnidades du ON du.idUnidad = fm.idUnidadReal\n`;
 
@@ -90,6 +91,8 @@ export const getEstudiosQuery = (unidad?: string, carreras?: string, ids?: numbe
   } else {
     query += `WHERE fm.idFechaTermino IS NULL\n`;
   }
+
+  query += `AND df.periodo = :periodo\n`;
 
   if (carreras) query += `AND du.nombre = :carreras\n`;
 
