@@ -9,7 +9,6 @@ import { getIdCarreraData } from './DimCarreraServices';
 import { getIdModalidadData } from './DimModalidadServices';
 import { getIdEstudioData } from './DimEstudiosServices';
 import { getIdProcedenciaData } from './DimProcedenciaServices';
-import { ProcedenciaType } from '../models/procedenciaModel';
 import { getIdUnidadData } from './DimUnidadServices';
 import { getFechaAct, getIdsFechas, getPeriodo } from './DimFechaServices';
 import { getIdDiscapacidadData } from './DimDiscapacidadServices';
