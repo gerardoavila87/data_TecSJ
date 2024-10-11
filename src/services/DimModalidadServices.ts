@@ -1,7 +1,7 @@
 import { coreDB, dataDB } from '../database/connection';
 import { QueryTypes } from 'sequelize';
 import { getModalidadesQuery, queries } from '../database/modalidadQueries';
-import { getIdsFechas } from './DimFechaServices';
+import { getIdsFechas, getPeriodo } from './DimFechaServices';
 
 interface FechaId {
     idFecha: number;
@@ -71,18 +71,22 @@ interface FechaId {
     idFecha: number;
 }
 
-export const getAllModalidades = async (unidad?: string, carreras?: string, inicio?: string, fin?: string) => {
+export const getAllModalidades = async (unidad?: string, carreras?: string, inicio?: string, fin?: string, periodo?: string) => {
     try {
         let ids: number[] = [];
         if (inicio && fin) {
             const resIds = await getIdsFechas(inicio, fin) as FechaId[];
-            ids = resIds.map(item => item.idFecha)
+            ids = resIds.map(item => item.idFecha);
         }
+
+        let periodoActivo;
+        !periodo ? periodoActivo = await getPeriodo() : periodoActivo = periodo;
 
         const replacements: any = {
             ...(carreras && { carreras }),
             ...(unidad && { unidad }),
-            ...(ids.length > 0 && { ids })
+            ...(ids.length > 0 && { ids }),
+            ...(periodoActivo && { periodo: periodoActivo })
         };
         const query = getModalidadesQuery(unidad, carreras, ids);
 
@@ -90,7 +94,7 @@ export const getAllModalidades = async (unidad?: string, carreras?: string, inic
             type: QueryTypes.SELECT,
             replacements
         });
-        
+
         return Modalidad;
     } catch (error) {
         console.error("Error obteniendo el core.Modalidad:", error);

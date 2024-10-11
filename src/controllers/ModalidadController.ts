@@ -31,8 +31,8 @@ export const getModalidades = async (req: Request, res: Response) => {
 
 export const getAllModalidades = async (req: Request, res: Response) => {
   try {
-    const {unidad, carreras, inicio, fin} = req.query;
-    const data = await modalidadServices.getAllModalidades(unidad as string, carreras as string, inicio as string, fin as string);
+    const {unidad, carreras, inicio, fin, periodo} = req.query;
+    const data = await modalidadServices.getAllModalidades(unidad as string, carreras as string, inicio as string, fin as string, periodo as string);
     res.json(data);
   } catch (error) {
     res.status(500).json({ error: (error as Error).message });

@@ -56,6 +56,7 @@ export const getProcedenciaQuery = (unidad?: string, carreras?: string, ids?: nu
 
   query += ` dp.estado, dp.municipio, COUNT(fm.idMatricula) AS cantidad
          FROM FactMatricula fm 
+         JOIN DimFecha df ON df.idFecha = fm.idFechaInicio
     LEFT JOIN DimProcedencia dp ON dp.idProcedencia = fm.idProcedencia\n`;
 
   if (unidad || carreras) query += `JOIN DimUnidades du ON du.idUnidad = fm.idUnidadReal\n`;
@@ -69,6 +70,8 @@ export const getProcedenciaQuery = (unidad?: string, carreras?: string, ids?: nu
   } else {
     query += `WHERE fm.idFechaTermino IS NULL\n`;
   }
+
+  query += `AND df.periodo = :periodo\n`;
 
   if (carreras) query += `AND du.nombre = :carreras\n`;
 

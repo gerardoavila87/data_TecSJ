@@ -1,8 +1,8 @@
 import { coreDB, dataDB } from '../database/connection';
 import { QueryTypes } from 'sequelize';
-import { queries } from '../database/carreraQueries';
+import { queries, getCarrerasQuery } from '../database/carreraQueries';
 import { CarreraType } from '../models/carreraModel';
-import { getIdsFechas } from './DimFechaServices';
+import { getIdsFechas, getPeriodo } from './DimFechaServices';
 
 export const getIdCarreraData = async (claveReq: string) => {
     try {
@@ -130,29 +130,31 @@ interface FechaId {
     idFecha: number;
 };
 
-export const getCarreraUR = async (unidad: string, fechaInicio?: string, fechaFin?: string) => {
+export const getCarreraUR = async (unidad: string, inicio?: string, fin?: string, periodo?: string) => {
     try {
-        if (fechaInicio && fechaFin) {
-            const idsRes = await getIdsFechas(fechaInicio, fechaFin) as FechaId[];
-            const ids = idsRes.map(item => item.idFecha);
-            console.log(ids);
-            const result = await dataDB.query(queries.getCarreraUnidadRFecha, {
-                type: QueryTypes.SELECT,
-                replacements: {
-                    unidad: unidad,
-                    ids: ids
-                }
-            });
-            return result;
-        } else {
-            const result = await dataDB.query(queries.getCarreraUnidadR, {
-                type: QueryTypes.SELECT,
-                replacements: {
-                    unidad: unidad
-                }
-            });
-            return result;
-        }        
+        let ids: number[] = [];
+
+        if (inicio && fin) {
+            const resIds = await getIdsFechas(inicio, fin) as FechaId[];
+            ids = resIds.map(item => item.idFecha);
+        }
+
+        const query = getCarrerasQuery(ids, unidad);
+        const replacements: any = {};
+
+        let periodoActivo;
+        !periodo ? periodoActivo = await getPeriodo() : periodoActivo = periodo;
+
+        replacements.periodo = periodoActivo;
+        if (unidad) replacements.unidad = unidad;
+        if (ids.length > 0) replacements.ids = ids;
+
+        const results = await dataDB.query(query, {
+            type: QueryTypes.SELECT,
+            replacements
+        });
+
+        return results;
     } catch (error) {
         console.error("Error obteniendo los estudiantes por carrera:", error);
         throw error; // Lanza el error para que pueda ser manejado por el controlador

@@ -2,7 +2,7 @@ import { coreDB, dataDB } from '../database/connection';
 import { QueryTypes } from 'sequelize';
 import { getProcedenciaQuery, queries } from '../database/procedenciaQueries';
 import { ProcedenciaType } from '../models/procedenciaModel';
-import { getIdsFechas } from './DimFechaServices';
+import { getIdsFechas, getPeriodo } from './DimFechaServices';
 
 export const getIdProcedenciaData = async (procedencia: ProcedenciaType) => {
     try {
@@ -71,7 +71,7 @@ interface FechaId {
     idFecha: number;
 }
 
-export const getAllProcedencias = async (unidad?: string, carreras?: string, inicio?: string, fin?: string) => {
+export const getAllProcedencias = async (unidad?: string, carreras?: string, inicio?: string, fin?: string, periodo?: string) => {
     try {
         let ids: number[] = [];
         if (inicio && fin) {
@@ -79,16 +79,22 @@ export const getAllProcedencias = async (unidad?: string, carreras?: string, ini
             ids = resIds.map(item => item.idFecha)
         }
 
+        let periodoActivo;
+        !periodo ? periodoActivo = await getPeriodo() : periodoActivo = periodo;
+
         const replacements: any = {
             ...(carreras && { carreras }),
             ...(unidad && { unidad }),
-            ...(ids.length > 0 && { ids })
+            ...(ids.length > 0 && { ids }),
+            ...(periodoActivo && { periodo: periodoActivo })
         };
+        
         const query = getProcedenciaQuery(unidad, carreras, ids);
         const result = await dataDB.query(query, {
             type: QueryTypes.SELECT,
             replacements
         });
+
         return result;
     } catch (error) {
         console.error("Error al consultar la Procedencia:", error);

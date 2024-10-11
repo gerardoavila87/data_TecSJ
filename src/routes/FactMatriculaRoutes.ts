@@ -27,4 +27,7 @@ router.get('/matricula/estatus', matriculaController.getEstatusGeneral);
 
 router.get('/matricula/semestre', matriculaController.getSemestreGeneral);
 
+router.get('/matricula/variacion', matriculaController.getMatriculaVariacion);
+
+
 export default router;

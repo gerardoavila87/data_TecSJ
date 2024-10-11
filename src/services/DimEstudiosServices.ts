@@ -90,8 +90,6 @@ export const getAllEstudio = async (unidad?:string, carreras?: string, inicio?: 
         let periodoActivo;
         !periodo ? periodoActivo = await getPeriodo() : periodoActivo = periodo;
         replacements.periodo = periodoActivo;
-        console.log(unidad);
-        console.log(query);
 
         if (carreras) replacements.carreras = carreras;
         if (unidad) replacements.unidad = unidad;

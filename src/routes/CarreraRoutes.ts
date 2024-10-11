@@ -5,8 +5,8 @@ const router = Router();
 
 router.get('/carreras/Oficial/:unidad', getAllCarrerasO);
 router.get('/carrera/Oficial/:unidad', getCarreraO);
-router.get('/carreras/Real/:unidad', getAllCarrerasR);
-router.get('/carrera/Real/:unidad', getCarreraR);
-router.get('/carreras/Real', getAllCarrerasReal);
+router.get('/carrera/:unidad', getAllCarrerasR);
+router.get('/carreras/:unidad', getCarreraR);
+router.get('/carrera/', getAllCarrerasReal);
 
 export default router;

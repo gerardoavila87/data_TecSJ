@@ -182,7 +182,32 @@ LEFT JOIN (SELECT * FROM UserCapacity uc
               OR fm.idFechaTermino > 
               (SELECT MAX(idFecha)
                   FROM DimFecha 
-                WHERE idFecha IN (21,22,28,29,30)));`
+                WHERE idFecha IN (21,22,28,29,30)));`,
+  getPeriodoVariacion:`
+    SELECT 
+      COALESCE(p2.nombre, p1.nombre) AS Unidad,
+      COALESCE(p2.matriculaAnt, 0) AS :periodo_anterior,
+      COALESCE(p1.matriculaActual, 0) AS :periodo_actual,
+    CASE 
+      WHEN COALESCE(p2.matriculaAnt, 0) = 0 THEN 0 
+      ELSE ROUND(((COALESCE(p1.matriculaActual, 0) - COALESCE(p2.matriculaAnt, 0)) / COALESCE(p2.matriculaAnt, 1)) * 100, 2) 
+      END AS Variación
+    FROM 
+      (SELECT du.idUnidad, du.nombre, COUNT(fm.idMatricula) AS matriculaActual
+      FROM FactMatricula fm
+      JOIN DimFecha df ON df.idFecha = fm.idFechaInicio
+      JOIN DimUnidades du ON du.idUnidad = fm.idUnidadReal
+      WHERE df.periodo = :periodo_actual
+      GROUP BY du.idUnidad, du.nombre) p1
+    LEFT JOIN 
+      (SELECT du.idUnidad, du.nombre, COUNT(fm.idMatricula) AS matriculaAnt
+      FROM FactMatricula fm
+      JOIN DimFecha df ON df.idFecha = fm.idFechaInicio
+      JOIN DimUnidades du ON du.idUnidad = fm.idUnidadReal
+      WHERE df.periodo = :periodo_anterior
+      GROUP BY du.idUnidad, du.nombre) p2
+    ON p1.idUnidad = p2.idUnidad;
+  `
 };
 
 export const getEstatusQuery = (unidad?: string, carrera?: string, ids?: number[]): string => {
@@ -277,7 +302,7 @@ export const getSemestreQuery = (unidad?: string, carreras?: string, ids?: numbe
     query += `WHERE fm.idFechaTermino IS NULL\n`;
   }
 
-  query += `AND df.periodo = :periodo`
+  query += `AND df.periodo = :periodo\n`;
 
   if (carreras) query += `AND du.nombre = :carreras\n`;
 
@@ -315,10 +340,10 @@ export const getTotalQuery = (ids?: number[], unidad?: string): string => {
   } else {
     query += `WHERE fm.idFechaTermino IS NULL\n`;
   }
-  query += `AND df.periodo = :periodo`
+  query += `AND df.periodo = :periodo\n`
 
   if (unidad) {
-    query += `AND du.nombre = :unidad`;
+    query += `AND du.nombre = :unidad\n`;
   }
 
   return query;

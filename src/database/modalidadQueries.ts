@@ -74,7 +74,8 @@ export const getModalidadesQuery = (unidad?: string, carreras?: string, ids?: nu
 
   query += ` dm.nombre AS modalidad, COUNT(fm.idMatricula) AS cantidad
         FROM FactMatricula fm 
-        JOIN DimModalidades dm ON dm.idModalidad = fm.idModalidad\n`;
+        JOIN DimModalidades dm ON dm.idModalidad = fm.idModalidad
+        JOIN DimFecha df ON df.idFecha = fm.idFechaInicio\n`;
 
   if (unidad || carreras) query += `JOIN DimUnidades du ON du.idUnidad = fm.idUnidadReal\n`;
 
@@ -87,6 +88,8 @@ export const getModalidadesQuery = (unidad?: string, carreras?: string, ids?: nu
   } else {
     query += `WHERE fm.idFechaTermino IS NULL\n`;
   }
+
+  query += `AND df.periodo = :periodo\n`;
 
   if (carreras) query += `AND du.nombre = :carreras\n`;
 

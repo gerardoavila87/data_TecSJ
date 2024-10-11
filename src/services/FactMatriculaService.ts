@@ -342,8 +342,8 @@ export const getMatriculaUnidadReal = async () => {
         const periodo = await getPeriodo();
         const matricula = await dataDB.query(queries.getMatriculaUnidadReal, {
             type: QueryTypes.SELECT,
-            replacements:{
-                periodo:periodo
+            replacements: {
+                periodo: periodo
             }
         });
         return matricula;
@@ -373,8 +373,8 @@ export const getMatriculaUnidadOficial = async () => {
         const periodo = await getPeriodo();
         const matricula = await dataDB.query(queries.getMatriculaUnidadOficial, {
             type: QueryTypes.SELECT,
-            replacements:{
-                periodo:periodo
+            replacements: {
+                periodo: periodo
             }
         });
         return matricula;
@@ -448,7 +448,7 @@ export const getEstatus = async (unidad?: string, carreras?: string, inicio?: st
         }
 
         const query = getEstatusQuery(unidad, carreras, ids.length > 0 ? ids : undefined);
-console.log(query);
+        console.log(query);
         const replacements: any = {};
         let periodoActivo;
         !periodo ? periodoActivo = await getPeriodo() : periodoActivo = periodo;
@@ -560,6 +560,33 @@ export const getMatriculaPeriodo = async (unidad?: string, inicio?: string, fin?
         if (ids.length > 0) replacements.ids = ids;
 
         const results = await dataDB.query(query, {
+            type: QueryTypes.SELECT,
+            replacements
+        });
+
+        return results;
+    } catch (error) {
+        throw new Error(`Error al ejecutar la consulta: ${error}`);
+    }
+};
+
+export const getMatriculaVariacion = async (periodo?: string) => {
+    try {
+        let periodoActivo;
+        if (!periodo) {
+            periodoActivo = await getPeriodo();
+        } else {
+            periodoActivo = periodo;
+        }
+        let anio: number = parseInt(periodoActivo.substring(0, 4));
+        let code = periodoActivo.substring(4).toUpperCase();
+        anio = anio - 1;
+        const periodoAnt = anio + code;
+        const replacements: any = {};
+        replacements.periodo_actual = periodoActivo;
+        replacements.periodo_anterior = periodoAnt;
+
+        const results = await dataDB.query(queries.getPeriodoVariacion, {
             type: QueryTypes.SELECT,
             replacements
         });
