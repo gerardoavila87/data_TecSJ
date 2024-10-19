@@ -41,7 +41,8 @@ export const getMatriculaUOficialF = async (req: Request, res: Response) => {
 
 export const getMatriculaUReal = async (req: Request, res: Response) => {
   try {
-    const data = await matriculaService.getMatriculaUnidadReal();
+    const { periodo } = req.query;
+    const data = await matriculaService.getMatriculaUnidadReal(periodo as string);
     res.json(data);
   } catch (error) {
     res.status(500).json({ error: (error as Error).message });

@@ -45,8 +45,12 @@ export const getMatriculaCoreBackup = async (): Promise<MatriculaType[] | undefi
 
 export const getMatriculaData = async (): Promise<MatriculaType[] | undefined> => {
     try {
+        const periodo = await getPeriodo();
         const matricula = await dataDB.query(queries.getMatriculaData, {
-            type: QueryTypes.SELECT
+            type: QueryTypes.SELECT,
+            replacements: {
+                periodo: periodo
+            }
         }) as MatriculaType[];
         return matricula;
     } catch (error) {
@@ -336,13 +340,14 @@ export const getMatriculaUnidadOficialF = async (fechaInicio: string, fechaFin: 
     }
 };
 
-export const getMatriculaUnidadReal = async () => {
+export const getMatriculaUnidadReal = async (periodo?: string) => {
     try {
-        const periodo = await getPeriodo();
+        let periodoActivo;
+        !periodo ? periodoActivo = await getPeriodo() : periodoActivo = periodo;
         const matricula = await dataDB.query(queries.getMatriculaUnidadReal, {
             type: QueryTypes.SELECT,
             replacements: {
-                periodo: periodo
+                periodo: periodoActivo
             }
         });
         return matricula;

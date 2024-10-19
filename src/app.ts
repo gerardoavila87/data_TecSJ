@@ -9,6 +9,7 @@ import ModalidadesRoutes from './routes/modalidadRoutes';
 import ProcedenciaRoutes from './routes/procedenciaRoutes';
 import EstudiantesRoutes from './routes/estudiantesRoutes'
 import FechasRoutes from './routes/FechasRoutes';
+import captacionRoutes from './routes/CaptacionRoutes';
 
 const app = express();
 connectDB();
@@ -22,6 +23,9 @@ app.use('/api', ModalidadesRoutes);
 app.use('/api', ProcedenciaRoutes);
 app.use('/api', EstudiantesRoutes);
 app.use('/api', FechasRoutes);
+/*Captacion*/
+app.use('/api', captacionRoutes);
+
 
 app.get('/', (req, res) => {
   res.send('API is running...');

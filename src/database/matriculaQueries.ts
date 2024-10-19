@@ -17,7 +17,7 @@ export const queries = {
          JOIN UserStudies us2 ON us2.user_IdStudy = u.user_IdStudy
          JOIN UserAddress ua ON ua.user_IdAddress = u.user_IdAddress
          JOIN OrgLocal ol ON ol.org_IdLocal = us.org_IdLocal
-         JOIN OrgCampus oc ON oc.org_IdCampus = us.org_IdCampus 
+         JOIN OrgCampus oc ON oc.org_IdCampus = us.plantel 
         WHERE us.tecnm ='s';`,
   getMatriculaCoreBackup: `
           SELECT us.code AS nocontrol, u.curp AS curp, u.state AS lugarNacimiento,
@@ -57,7 +57,8 @@ LEFT JOIN (SELECT * FROM UserCapacity uc
     LEFT JOIN DimDiscapacidades dd ON dd.IdDiscapacidad = fm.idDiscapacidad 
          JOIN DimFecha df ON df.idFecha = fm.idFechaInicio 
     LEFT JOIN DimFecha df2 ON df2.idFecha = fm.idFechaTermino
-    WHERE ISNULL(fm.idFechaTermino)`,
+        WHERE ISNULL(fm.idFechaTermino)
+          AND df.periodo = :periodo;`,
   setMatricula: `
     INSERT INTO FactMatricula (idMatricula, idEstudiante, idCarrera, idModalidad, idEstudio, idProcedencia, 
                 idUnidadReal, idUnidadOficial, idDiscapacidad, idFechaInicio, idFechaTermino, semestre, estatus)

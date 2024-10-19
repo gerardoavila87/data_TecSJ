@@ -18,6 +18,21 @@ export const getIdUnidadData = async (unidad: string) => {
     }
 };
 
+export const getIdUnidadClave = async (clave: string) => {
+    try {
+        const idUnidad = await dataDB.query(queries.getIdUnidadClave, {
+            type: QueryTypes.SELECT,
+            replacements: {
+                clave: clave
+            }
+        }) as { id: string }[];
+        return idUnidad.length > 0 ? idUnidad[0].id : null;
+    } catch (error) {
+        console.error("Error obteniendo el ID la Unidad:", error);
+        throw error; // Lanza el error para que pueda ser manejado por el controlador
+    }
+};
+
 export const getUnidadData = async (idReq: string): Promise<UnidadType> => {
     try {
         const unidad = await dataDB.query(queries.getUnidadData, {

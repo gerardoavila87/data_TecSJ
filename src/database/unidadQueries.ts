@@ -2,7 +2,11 @@ export const queries = {
   getIdUnidadData: `
     SELECT idUnidad AS id
       FROM DimUnidades
-    WHERE nombre = :nombre;`,
+     WHERE nombre COLLATE utf8_general_ci = :nombre;`,
+  getIdUnidadClave: `
+    SELECT idUnidad AS id
+      FROM DimUnidades
+    WHERE clave = :clave;`,
   getUnidadData: `
     SELECT * 
       FROM DimUnidades

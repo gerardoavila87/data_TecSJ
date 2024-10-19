@@ -20,6 +20,22 @@ export const getIdEstudioData = async (escuelaR: string) => {
     }
 };
 
+export const getIdEstudioClave = async (clave: string) => {
+    try {
+        const IdEstudio = await dataDB.query(queries.getIdEstudioClave, {
+            type: QueryTypes.SELECT,
+            replacements: {
+                clave: clave
+            }
+        }) as { id: string }[]; // Tipar el resultado como un array de objetos con el campo 'id'
+
+        return IdEstudio.length > 0 ? IdEstudio[0].id : null;
+    } catch (error) {
+        console.error("Error obteniendo el ID del estudio:", error);
+        throw error; // Lanza el error para que pueda ser manejado por el controlador
+    }
+};
+
 export const getEstudioData = async (idReq: string) => {
     try {
         const estudio = await dataDB.query(queries.getEstudioData, {
@@ -76,7 +92,7 @@ interface FechaId {
     idFecha: number;
 }
 
-export const getAllEstudio = async (unidad?:string, carreras?: string, inicio?: string, fin?: string, periodo?: string) => {
+export const getAllEstudio = async (unidad?: string, carreras?: string, inicio?: string, fin?: string, periodo?: string) => {
     try {
         let ids: number[] = [];
         const replacements: any = {};

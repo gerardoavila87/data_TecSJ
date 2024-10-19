@@ -1,0 +1,20 @@
+export interface DataCaptacionType {
+    idCaptacion: number | null;
+    idAspirante: number | null;
+    idCarrera: number | null;
+    idModalidad: number | null;
+    idUnidadReal: number | null;
+    idUnidadOficial: number | null;
+    idProcedencia: number | null;
+    idEstudio: number | null;
+    idDiscapacidad: number | null;
+    idEstatus: number | null;
+    pagoExamen: number | null;
+    pagoInscripcion: number | null;
+    docsEntregados: number | null;
+    inscripcionCompleta: number | null;
+    medioCaptacion: string | null;
+    periodo: string | null;
+    idFechaInicio: number | null;
+    idFechaTermino: number | null;
+}
