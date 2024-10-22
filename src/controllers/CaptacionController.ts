@@ -12,16 +12,14 @@ export const fetchCaptacion = async (req: Request, res: Response) => {
 
 export const getAllCaptacion = async (req: Request, res: Response) => {
     try {
-        const data = await captacionServices.getAllCaptacion();
-        res.json(data);
-    } catch (error) {
-        res.status(500).json({ error: (error as Error).message });
-    }
-}
-
-export const getCaptacionUnidad = async (req: Request, res: Response) => {
-    try {
-        const data = await captacionServices.getCaptacionUnidad();
+        const { unidad, carreras, periodo } = req.query;
+        const { filtro } = req.params;
+        const data = await captacionServices.getAllCaptacion(
+            filtro as string,
+            unidad as string,
+            carreras as string,
+            periodo as string
+        );
         res.json(data);
     } catch (error) {
         res.status(500).json({ error: (error as Error).message });

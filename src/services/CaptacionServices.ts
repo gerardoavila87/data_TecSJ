@@ -1,5 +1,5 @@
 import { dataDB } from "../database/connection"
-import { queries } from "../database/captacionQueries";
+import { getCaptacion, queries } from "../database/captacionQueries";
 import { QueryTypes } from 'sequelize';
 import { getFechaAct } from "./DimFechaServices";
 import { BaseCaptacionType } from "../models/baseCaptacionModel";
@@ -10,7 +10,7 @@ import { getIdModalidadData } from "./DimModalidadServices";
 import { getIdProcedenciaData } from "./DimProcedenciaServices";
 import { getIdUnidadClave, getIdUnidadData } from "./DimUnidadServices";
 import { getIdAspiranteData, setAspiranteData } from "./AspiranteServices";
-import { getIdEstudioClave, getIdEstudioData } from "./DimEstudiosServices";
+import { getIdEstudioData } from "./DimEstudiosServices";
 import { getIdDiscapacidadData } from "./DimDiscapacidadServices";
 import { getIdEstatus } from "./EstatusCaptServices";
 
@@ -115,10 +115,9 @@ export const compareCaptacion = async () => {
             console.log(`Aspirante nuevo: ${coreAspirante.curp} - No encontrado en captacionData`);
             return true;
         }
-
         const fieldsAspirante: (keyof typeof coreAspirante)[] = ['nombre', 'primerApellido', 'segundoApellido', 'lugarNacimiento'];
         const fieldsDimensiones: (keyof typeof coreAspirante)[] = ['carrera', 'modalidad', 'unidadReal', 'unidadOficial', 'pagoExamen',
-            'pagoInscripcion', 'pagoInscripcion', 'docsEntregados', 'inscripcionCompleta', 'medioCaptacion', 'estatus'];
+            'pagoInscripcion', 'pagoInscripcion', 'docsEntregados', 'inscripcionCompleta', 'medioCaptacion', 'estatus', 'periodo'];
 
         // Almacenar las diferencias encontradas
         const diferenciasAspirante = fieldsAspirante.filter(field => coreAspirante[field] !== matchingAspirante[field]);
@@ -171,7 +170,7 @@ export const compareCaptacion = async () => {
                 getIdProcedenciaData({ municipio: captacion.municipio, estado: estadoLimpio }),
                 getIdUnidadData(captacion.unidadReal),
                 getIdUnidadClave(captacion.unidadOficial),
-                getIdEstudioClave(captacion.estudios),
+                getIdEstudioData(captacion.estudios),
                 getIdDiscapacidadData(captacion.discapacidad),
                 getIdEstatus(captacion.estatus)
             ]);
@@ -226,26 +225,24 @@ export const compareCaptacion = async () => {
     };
 };
 
-export const getAllCaptacion = async () => {
+export const getAllCaptacion = async (filtro?: string, unidad?: string, carreras?: string, periodo?: string) => {
     try {
-        const replacements: any = { periodo: '2023B' };
-        const result = await dataDB.query(queries.getAllCaptacion, {
-            type: QueryTypes.SELECT,
-            replacements
-        }) as [];
-        return result;
-    } catch (error) {
-        throw error;
-    }
-}
+        let periodoActivo;
+        periodo ? periodoActivo = periodo : periodoActivo = '2024A';
 
-export const getCaptacionUnidad = async () => {
-    try {
-        const replacements: any = { periodo: '2023B' };
-        const result = await dataDB.query(queries.getCaptacionUnidad, {
+        const query = getCaptacion(filtro, unidad, carreras);
+        console.log(query);
+        const replacements: any = {
+            unidad: unidad,
+            carreras: carreras,
+            periodo: periodoActivo
+        };
+
+        const result = await dataDB.query(query, {
             type: QueryTypes.SELECT,
             replacements
         }) as [];
+
         return result;
     } catch (error) {
         throw error;
