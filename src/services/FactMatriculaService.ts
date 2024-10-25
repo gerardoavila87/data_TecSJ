@@ -558,6 +558,7 @@ export const getMatriculaPeriodo = async (unidad?: string, inicio?: string, fin?
 
         const query = getPeriodoQuery(ids, unidad);
         const replacements: any = {};
+        console.log(query);
 
         replacements.periodo = periodoActivo;
         if (unidad) replacements.unidad = unidad;

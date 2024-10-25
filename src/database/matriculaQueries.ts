@@ -373,6 +373,7 @@ export const getPeriodoQuery = (ids?: number[], unidad?: string): string => {
   if (unidad) {
     query += `AND du.nombre = :unidad`;
   }
-  query += `GROUP BY df.periodo`
+  query += `GROUP BY df.periodo
+            ORDER BY LEFT(df.periodo, 4) ASC, RIGHT(df.periodo, 1) DESC;`
   return query;
 }
