@@ -25,3 +25,31 @@ export const getAllCaptacion = async (req: Request, res: Response) => {
         res.status(500).json({ error: (error as Error).message });
     }
 }
+
+export const getCaptacionTotal = async (req: Request, res: Response) => {
+    try {
+        const { periodo } = req.query;
+        const data = await captacionServices.getCaptacionTotal(periodo as string);
+        res.json(data);
+    } catch (error) {
+        res.status(500).json({ error: (error as Error).message });
+    }
+}
+
+export const getMaxPeriodo = async (req: Request, res: Response) => {
+    try {
+        const data = await captacionServices.getMaxPeriodo();
+        res.json(data);
+    } catch (error) {
+        res.status(500).json({ error: (error as Error).message });
+    }
+}
+
+export const getCaptacionFecha = async (req: Request, res: Response) => {
+    try {
+        const data = await captacionServices.getCaptacionFecha();
+        res.json(data);
+    } catch (error) {
+        res.status(500).json({ error: (error as Error).message });
+    }
+}

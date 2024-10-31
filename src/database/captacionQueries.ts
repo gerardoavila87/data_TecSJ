@@ -1,5 +1,5 @@
 export const queries = {
-     getCaptacionCore: `
+    getCaptacionCore: `
         SELECT sh.curp, sh.name AS nombre, sh.firstName AS primerApellido, 
                sh.secondName AS segundoApellido, sh.birthState AS lugarNacimiento, 
                sh.sex AS genero, 'N' AS indigena, sh.extension AS unidadReal, 
@@ -16,7 +16,7 @@ export const queries = {
                     FROM STA.Units u1 
                     WHERE u1.code = 'OTRO'
                     LIMIT 1) u3 ON p.q2 = 'OTRO';`,
-     getCaptacionData: `
+    getCaptacionData: `
            SELECT da.curp, da.nombre, da.primerApellido, da.segundoApellido, 
                   da.lugarNacimiento, da.genero, da.indigena, du.nombre AS unidadReal, 
                   du2.clave AS unidadOficial, dc.clave AS carrera, fc.periodo,
@@ -34,15 +34,15 @@ export const queries = {
         LEFT JOIN DimEstudios de ON de.idEstudio = fc.idEstudio 
              JOIN DimModalidades dm ON dm.idModalidad = fc.idModalidad 
         LEFT JOIN DimProcedencia dp ON dp.idProcedencia = fc.idProcedencia;`,
-     getUltimaCaptacionAspirante: `
+    getUltimaCaptacionAspirante: `
         SELECT MAX(idCaptacion) as idCaptacion
           FROM FactCaptacion fc 
          WHERE idAspirante = :idAspirante;`,
-     upCaptacionFechaTermino: `
+    upCaptacionFechaTermino: `
         UPDATE FactCaptacion
            SET IdFechaTermino = :idFecha
          WHERE idCaptacion = :idCaptacion;`,
-     setCaptacionData: `
+    setCaptacionData: `
         INSERT INTO FactCaptacion
                     (idCaptacion, idAspirante, idCarrera, idModalidad, idUnidadReal,
                     idUnidadOficial, idProcedencia, idEstudio, idDiscapacidad, idEstatus,
@@ -52,7 +52,7 @@ export const queries = {
                     :idUnidadOficial, :idProcedencia, :idEstudio, :idDiscapacidad, :idEstatus, 
                     :pagoExamen, :pagoInscripcion, :docsEntregados, :inscripcionCompleta, 
                     :medioCaptacion, :periodo, :idFechaInicio, :idFechaTermino);`,
-     getDuplicados: `
+    getDuplicados: `
           SELECT MIN(fc.idCaptacion) AS idMatricula, da.idAspirante 
             FROM FactCaptacion fc 
             JOIN DimAspirantes da ON da.idAspirante = fc.idAspirante 
@@ -66,128 +66,146 @@ export const queries = {
                      HAVING COUNT(*) > 1)
         GROUP BY da.curp
         ORDER BY da.curp;`,
-     getAllCaptacion: `
+    getAllCaptacion: `
         SELECT COUNT(fc.idCaptacion) AS cantidad
           FROM FactCaptacion fc
          WHERE fc.idFechaTermino IS NULL 
-           AND periodo = :periodo;`
+           AND periodo = :periodo;`,
+    getMaxPeriodo: `
+          SELECT fc.periodo 
+            FROM FactCaptacion fc
+        GROUP BY fc.periodo
+        ORDER BY SUBSTRING(fc.periodo, 1, 4) DESC,
+                 CASE
+                     WHEN SUBSTRING(fc.periodo, 5, 1) = 'A' THEN 1
+                     WHEN SUBSTRING(fc.periodo, 5, 1) = 'B' THEN 2
+                     ELSE 3
+                 END
+           LIMIT 1;`,
+    getCaptacionFecha: `
+          SELECT CONCAT_WS(" - ",df.dia, df.mes) AS fecha, COUNT(fc.idCaptacion) AS cantidad
+            FROM FactCaptacion fc 
+            JOIN DimFecha df ON df.idFecha = fc.idFechaInicio 
+           WHERE fc.idFechaTermino IS NULL 
+             AND fc.periodo = :periodo
+        GROUP BY df.idFecha;`
 };
 
 export const getCaptacion = (filtro?: string, unidad?: string, carreras?: string): string => {
-     let selectFields = ['COUNT(fc.idCaptacion) AS cantidad'];
-     let joins = [
-         'LEFT JOIN DimUnidades du ON du.idUnidad = fc.IdUnidadReal',
-         'LEFT JOIN DimCarreras dc ON dc.idCarrera = fc.idCarrera'
-     ];
-     let whereConditions = ['fc.idFechaTermino IS NULL'];
-     let groupByFields = [];
-     let orderByFields = ['du.nombre'];
- 
-     if (filtro !== 'periodo') {
-         whereConditions.push('fc.periodo = :periodo');
-     }
- 
-     if (unidad || filtro === 'unidad') {
-         selectFields.unshift('du.nombre AS unidad');
-         groupByFields.push('fc.IdUnidadReal');
-     }
- 
-     if (carreras) {
-         selectFields.unshift('dc.nombre AS carrera');
-         groupByFields.push('fc.idCarrera');
-         orderByFields.push('dc.nombre');
-     }
- 
-     switch (filtro) {
-         case 'lugar':
-             selectFields.unshift('da.lugarNacimiento');
-             joins.push('JOIN DimAspirantes da ON da.idAspirante = fc.idAspirante');
-             groupByFields.push('da.lugarNacimiento');
-             orderByFields.push('da.lugarNacimiento');
-             break;
-         case 'genero':
-             selectFields.unshift('da.genero');
-             joins.push('JOIN DimAspirantes da ON da.idAspirante = fc.idAspirante');
-             groupByFields.push('da.genero');
-             orderByFields.push('da.genero');
-             break;
-         case 'indigena':
-             selectFields.unshift('da.indigena');
-             joins.push('JOIN DimAspirantes da ON da.idAspirante = fc.idAspirante');
-             groupByFields.push('da.indigena');
-             orderByFields.push('da.indigena');
-             break;
-         case 'modalidad':
-             selectFields.unshift('dm.nombre AS modalidad');
-             joins.push('JOIN DimModalidades dm ON dm.idModalidad = fc.idModalidad');
-             groupByFields.push('fc.idModalidad');
-             orderByFields.push('dm.nombre');
-             break;
-         case 'procedencia':
-             selectFields.unshift('dp.estado, dp.municipio');
-             joins.push('JOIN DimProcedencia dp ON dp.idProcedencia = fc.idProcedencia');
-             groupByFields.push('fc.idProcedencia');
-             orderByFields.push('dp.estado', 'dp.municipio');
-             break;
-         case 'estudio':
-             selectFields.unshift('de.nombre AS escuela');
-             joins.push('LEFT JOIN DimEstudios de ON de.idEstudio = fc.idEstudio');
-             groupByFields.push('fc.idEstudio');
-             orderByFields.push('de.nombre');
-             break;
-         case 'discapacidad':
-             selectFields.unshift('dd.nombre AS discapacidad');
-             joins.push('LEFT JOIN DimDiscapacidades dd ON dd.IdDiscapacidad = fc.idDiscapacidad');
-             groupByFields.push('fc.idDiscapacidad');
-             orderByFields.push('dd.nombre');
-             break;
-         case 'estatus':
-             selectFields.unshift('dec2.estatus');
-             joins.push('LEFT JOIN DimEstatusCaptacion dec2 ON dec2.idEstatus = fc.idEstatus');
-             groupByFields.push('fc.idEstatus');
-             orderByFields.push('dec2.estatus');
-             break;
-         case 'examen':
-             selectFields.unshift(`IF(fc.pagoExamen=1,'Con pago', 'Sin pago') AS pagoExamen`);
-             groupByFields.push('fc.pagoExamen');
-             orderByFields.push('fc.pagoExamen');
-             break;
-         case 'pinscripcion':
-             selectFields.unshift(`IF(fc.pagoInscripcion =1,'Con pago', 'Sin pago') AS pagoInscripcion`);
-             groupByFields.push('fc.pagoInscripcion');
-             orderByFields.push('fc.pagoInscripcion');
-             break;
-         case 'documentos':
-             selectFields.unshift(`IF(fc.docsEntregados =1,'Con documentos', 'Sin documentos') AS documentos`);
-             groupByFields.push('fc.docsEntregados');
-             orderByFields.push('fc.docsEntregados');
-             break;
-         case 'inscripcionc':
-             selectFields.unshift(`IF(fc.inscripcionCompleta =1,'Completa', 'Incompleta') AS inscripcion`);
-             groupByFields.push('fc.inscripcionCompleta');
-             orderByFields.push('fc.inscripcionCompleta');
-             break;
-         case 'medio':
-             selectFields.unshift(`fc.medioCaptacion`);
-             groupByFields.push('fc.medioCaptacion');
-             orderByFields.push('fc.medioCaptacion');
-             break;
-         case 'periodo':
-             selectFields.unshift(`fc.periodo`);
-             groupByFields.push('fc.periodo');
-             orderByFields.push('fc.periodo');
-             break;
-     }
- 
-     if (unidad) {
-         whereConditions.push('du.nombre = :unidad');
-     }
- 
-     if (carreras) {
-         whereConditions.push('du.nombre = :carreras');
-     }
- 
-     let query = `
+    let selectFields = ['COUNT(fc.idCaptacion) AS cantidad'];
+    let joins = [
+        
+        'LEFT JOIN DimUnidades du ON du.idUnidad = fc.IdUnidadReal',
+        'LEFT JOIN DimCarreras dc ON dc.idCarrera = fc.idCarrera'
+    ];
+    let whereConditions = ['fc.idFechaTermino IS NULL'];
+    let groupByFields = [];
+    let orderByFields = ['du.nombre'];
+
+    if (filtro !== 'periodo') {
+        whereConditions.push('fc.periodo = :periodo');
+    }
+    if (unidad || filtro === 'unidad') {
+        selectFields.unshift('du.nombre AS nombre, du.clave AS clave, du.clase');
+        groupByFields.push('fc.IdUnidadReal');
+    }
+
+    if (carreras) {
+        selectFields.unshift('dc.nombre AS carrera');
+        groupByFields.push('fc.idCarrera');
+        orderByFields.push('dc.nombre');
+    }
+
+    switch (filtro) {
+        case 'lugar':
+            selectFields.unshift('da.lugarNacimiento');
+            joins.push('JOIN DimAspirantes da ON da.idAspirante = fc.idAspirante');
+            groupByFields.push('da.lugarNacimiento');
+            orderByFields.push('da.lugarNacimiento');
+            break;
+        case 'genero':
+            selectFields.unshift('da.genero');
+            joins.push('JOIN DimAspirantes da ON da.idAspirante = fc.idAspirante');
+            groupByFields.push('da.genero');
+            orderByFields.push('da.genero');
+            break;
+        case 'indigena':
+            selectFields.unshift('da.indigena');
+            joins.push('JOIN DimAspirantes da ON da.idAspirante = fc.idAspirante');
+            groupByFields.push('da.indigena');
+            orderByFields.push('da.indigena');
+            break;
+        case 'modalidad':
+            selectFields.unshift('dm.nombre AS modalidad');
+            joins.push('JOIN DimModalidades dm ON dm.idModalidad = fc.idModalidad');
+            groupByFields.push('fc.idModalidad');
+            orderByFields.push('dm.nombre');
+            break;
+        case 'procedencia':
+            selectFields.unshift('dp.estado, dp.municipio');
+            joins.push('JOIN DimProcedencia dp ON dp.idProcedencia = fc.idProcedencia');
+            groupByFields.push('fc.idProcedencia');
+            orderByFields.push('dp.estado', 'dp.municipio');
+            break;
+        case 'estudio':
+            selectFields.unshift('de.nombre AS escuela');
+            joins.push('LEFT JOIN DimEstudios de ON de.idEstudio = fc.idEstudio');
+            groupByFields.push('fc.idEstudio');
+            orderByFields.push('de.nombre');
+            break;
+        case 'discapacidad':
+            selectFields.unshift('dd.nombre AS discapacidad');
+            joins.push('LEFT JOIN DimDiscapacidades dd ON dd.IdDiscapacidad = fc.idDiscapacidad');
+            groupByFields.push('fc.idDiscapacidad');
+            orderByFields.push('dd.nombre');
+            break;
+        case 'estatus':
+            selectFields.unshift('dec2.estatus');
+            joins.push('LEFT JOIN DimEstatusCaptacion dec2 ON dec2.idEstatus = fc.idEstatus');
+            groupByFields.push('fc.idEstatus');
+            orderByFields.push('dec2.estatus');
+            break;
+        case 'examen':
+            selectFields.unshift(`IF(fc.pagoExamen=1,'Con pago', 'Sin pago') AS pagoExamen`);
+            groupByFields.push('fc.pagoExamen');
+            orderByFields.push('fc.pagoExamen');
+            break;
+        case 'pinscripcion':
+            selectFields.unshift(`IF(fc.pagoInscripcion =1,'Con pago', 'Sin pago') AS pagoInscripcion`);
+            groupByFields.push('fc.pagoInscripcion');
+            orderByFields.push('fc.pagoInscripcion');
+            break;
+        case 'documentos':
+            selectFields.unshift(`IF(fc.docsEntregados =1,'Con documentos', 'Sin documentos') AS documentos`);
+            groupByFields.push('fc.docsEntregados');
+            orderByFields.push('fc.docsEntregados');
+            break;
+        case 'inscripcionc':
+            selectFields.unshift(`IF(fc.inscripcionCompleta =1,'Completa', 'Incompleta') AS inscripcion`);
+            groupByFields.push('fc.inscripcionCompleta');
+            orderByFields.push('fc.inscripcionCompleta');
+            break;
+        case 'medio':
+            selectFields.unshift(`fc.medioCaptacion`);
+            groupByFields.push('fc.medioCaptacion');
+            orderByFields.push('fc.medioCaptacion');
+            break;
+        case 'periodo':
+            selectFields.unshift(`fc.periodo`);
+            groupByFields.push('fc.periodo');
+            orderByFields.push('fc.periodo');
+            break;
+    }
+
+    if (unidad) {
+        whereConditions.push('du.nombre = :unidad');
+    }
+
+    if (carreras) {
+        whereConditions.push('du.nombre = :carreras');
+    }
+
+    let query = `
          SELECT ${selectFields.join(', ')}
          FROM FactCaptacion fc
          ${joins.join('\n')}
@@ -195,9 +213,9 @@ export const getCaptacion = (filtro?: string, unidad?: string, carreras?: string
          GROUP BY ${groupByFields.join(', ')}
          ORDER BY ${orderByFields.join(', ')}
      `;
- 
-     return query;
- };
- 
+
+    return query;
+};
+
 
 

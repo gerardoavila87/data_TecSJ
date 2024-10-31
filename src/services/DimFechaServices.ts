@@ -14,6 +14,7 @@ export const getFechaAct = async () => {
                 type: QueryTypes.SELECT,
             }) as { periodo: string }[];
             if (periodoR.length > 0) {
+                await dataDB.query(queries.setEspanol);
                 await dataDB.query(queries.setFechaAct, {
                     type: QueryTypes.INSERT,
                     replacements: { period: periodoR[0].periodo }

@@ -1,7 +1,7 @@
 import { dataDB } from "../database/connection"
 import { getCaptacion, queries } from "../database/captacionQueries";
 import { QueryTypes } from 'sequelize';
-import { getFechaAct } from "./DimFechaServices";
+import { getFechaAct, getPeriodo } from "./DimFechaServices";
 import { BaseCaptacionType } from "../models/baseCaptacionModel";
 import { DataCaptacionType } from "../models/dataCaptacionModel";
 import { AspiranteType } from "../models/aspiranteModel";
@@ -228,7 +228,7 @@ export const compareCaptacion = async () => {
 export const getAllCaptacion = async (filtro?: string, unidad?: string, carreras?: string, periodo?: string) => {
     try {
         let periodoActivo;
-        periodo ? periodoActivo = periodo : periodoActivo = '2024A';
+        !periodo ? periodoActivo = await getMaxPeriodo() : periodoActivo = periodo;
 
         const query = getCaptacion(filtro, unidad, carreras);
         console.log(query);
@@ -244,6 +244,49 @@ export const getAllCaptacion = async (filtro?: string, unidad?: string, carreras
         }) as [];
 
         return result;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export const getCaptacionTotal = async (periodo?: string) => {
+    try {
+        let periodoActivo;
+        !periodo ? periodoActivo = await getMaxPeriodo() : periodoActivo = periodo;
+        const captacion = await dataDB.query(queries.getAllCaptacion, {
+            type: QueryTypes.SELECT,
+            replacements: {
+                periodo: periodoActivo
+            }
+        });
+        return captacion;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export const getMaxPeriodo = async () => {
+    try {
+        const periodo = await dataDB.query(queries.getMaxPeriodo, {
+            type: QueryTypes.SELECT
+        }) as { periodo: string }[];
+        return periodo[0].periodo;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export const getCaptacionFecha = async (periodo?: string) => {
+    try {
+        let periodoActivo;
+        !periodo ? periodoActivo = await getMaxPeriodo() : periodoActivo = periodo;
+        const captacion = await dataDB.query(queries.getCaptacionFecha, {
+            type: QueryTypes.SELECT,
+            replacements: {
+                periodo: periodoActivo
+            }
+        });
+        return captacion;
     } catch (error) {
         throw error;
     }
