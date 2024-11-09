@@ -12,7 +12,7 @@ const coreDB = new Sequelize(
     dialect: 'mariadb',
     logging: false,
     dialectOptions: {
-      connectTimeout: 20000 // 20 segundos
+      connectTimeout: 30000 // 20 segundos
     }
   }
 );
@@ -26,7 +26,7 @@ const coreBackupDB = new Sequelize(
     dialect: 'mariadb',
     logging: false,
     dialectOptions: {
-      connectTimeout: 20000 // 20 segundos
+      connectTimeout: 30000 // 20 segundos
     }
   }
 );
@@ -40,7 +40,7 @@ const dataDB = new Sequelize(
     dialect: 'mariadb',
     logging: false,
     dialectOptions: {
-      connectTimeout: 20000 // 20 segundos
+      connectTimeout: 30000 // 20 segundos
     }
   }
 );
@@ -51,10 +51,10 @@ const connectDB = async () => {
     console.log('CoreDB connected to core database successfully.');
     await dataDB.authenticate();
     console.log('DataDB Connected to data database successfully.');
-/*
+
     await coreBackupDB.authenticate();
     console.log('CoreDB connected to coreBackupDB database successfully.');
-  */
+  
   } catch (error) {
     console.error('Unable to connect to the databases:', error);
     process.exit(1);

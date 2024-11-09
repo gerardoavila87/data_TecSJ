@@ -5,10 +5,13 @@ import { FechaType } from '../models/fechaModel';
 
 export const getFechaAct = async () => {
     try {
-        await dataDB.query(queries.setEspanol);
+        const esp = await dataDB.query(queries.setEspanol);
+        console.log(esp);
         let idFecha: { id: string }[] = await dataDB.query(queries.getFechaAct, {
             type: QueryTypes.SELECT,
         });
+        console.log(idFecha);
+
         if (idFecha.length === 0) {
             const periodoR = await coreDB.query(queries.getPeriodo, {
                 type: QueryTypes.SELECT,
@@ -26,6 +29,7 @@ export const getFechaAct = async () => {
                 throw new Error("No se encontró ningún periodo en la base de datos core");
             }
         }
+        console.log(idFecha);
         return idFecha.length > 0 ? idFecha[0].id : null;
     } catch (error) {
         console.error("Error obteniendo el ID de la fecha:", error);

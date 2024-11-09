@@ -110,7 +110,7 @@ export const updateMatriculaFechaTermino = async (idEstudiante: string | null, i
 export const insertarNuevasMatriculas = async () => {
     const [matriculaCore, idFechaActual] = await Promise.all([
         getMatriculaCoreBackup(),
-        getFechaAct()
+        '32'
     ]);
 
     if (matriculaCore && matriculaCore?.length > 0) {
@@ -267,21 +267,20 @@ export const compareMatricula = async () => {
     }
 
     const t = await dataDB.transaction();
+    let dup;
     try {
         const duplicados = await getDuplicados() as any[];
-
+        dup = duplicados;
         await Promise.all(duplicados.map(async duplicado => {
             await updateMatriculaFechaTermino(duplicado.idEstudiante, idFechaActual);
             console.log(`Duplicado ${duplicado.idEstudiante}`);
         }));
-
         await t.commit();
     } catch (error) {
         await t.rollback();
         throw error;
     }
-
-
+    console.log(dup.length);
     return {
         matriculaCoreLength: matriculaCore?.length,
         matriculaDataLength: matriculaData?.length,
@@ -290,13 +289,15 @@ export const compareMatricula = async () => {
 };
 
 const getDuplicados = async () => {
+    const periodo = await getPeriodo();
     const result = await dataDB.query(queries.getDuplicados, {
-        type: QueryTypes.SELECT
+        type: QueryTypes.SELECT,
+        replacements: {
+            periodo: periodo
+        }
     });
     return result;
 }
-
-
 
 export const getMatricula = async () => {
     const result = await compareMatricula();

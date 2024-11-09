@@ -37,8 +37,9 @@ LEFT JOIN (SELECT * FROM UserCapacity uc
      JOIN UserStudies us2 ON us2.user_IdStudy = u.user_IdStudy
      JOIN UserAddress ua ON ua.user_IdAddress = u.user_IdAddress
      JOIN OrgLocal ol ON ol.org_IdLocal = us.org_IdLocal
-     JOIN OrgCampus oc ON oc.org_IdCampus = us.org_IdCampus 
-    WHERE us.ins =1;`,
+     JOIN OrgCampus oc ON oc.org_IdCampus = us.plantel
+    WHERE us.ins =1
+    LIMIT 6000 OFFSET 6000;`,
   getMatriculaData: `
        SELECT de.nocontrol, de.curp, de.lugarNacimiento, de.nombre, de.primerApellido,
               de.segundoApellido, de.seguro, de.genero, de.celular, de.correo, 
@@ -76,14 +77,18 @@ LEFT JOIN (SELECT * FROM UserCapacity uc
       SELECT MIN(fm.idMatricula) AS idMatricula, de.idEstudiante 
         FROM FactMatricula fm
         JOIN DimEstudiante de ON de.idEstudiante = fm.idEstudiante
+        JOIN DimFecha df ON df.idFecha = fm.idFechaInicio
        WHERE ISNULL(fm.idFechaTermino)
          AND de.nocontrol
               IN (SELECT de2.nocontrol
                     FROM FactMatricula fm2
                     JOIN DimEstudiante de2 ON de2.idEstudiante = fm2.idEstudiante
+                    JOIN DimFecha df2 ON df2.idFecha = fm2.idFechaInicio
                    WHERE ISNULL(fm2.idFechaTermino)
+                     AND df2.periodo = :periodo
                 GROUP BY de2.nocontrol
                   HAVING COUNT(*) > 1)
+         AND df.periodo = :periodo
     GROUP BY de.nocontrol
     ORDER BY de.nocontrol;`,
   getMatriculaUnidadReal: `
@@ -94,7 +99,7 @@ LEFT JOIN (SELECT * FROM UserCapacity uc
        WHERE ISNULL(fm.idFechaTermino) 
          AND df.periodo = :periodo 
     GROUP BY fm.idUnidadReal
-    ORDER by cantidad;`,
+    ORDER by cantidad DESC;`,
   getMatriculaUnidadRealClase: `
       SELECT du.nombre AS nombre, du.clave AS clave, COUNT(fm.idMatricula) AS cantidad, du.clase
         FROM FactMatricula fm 
@@ -146,7 +151,7 @@ LEFT JOIN (SELECT * FROM UserCapacity uc
                   WHERE idFecha IN (:ids)))
          AND df.periodo = :periodo
     GROUP BY du.nombre 
-    ORDER BY cantidad DESC;`,
+    ORDER BY cantidad ASC;`,
   getMatriculaUnidadOficialF: `
       SELECT du.nombre AS nombre, COUNT(fm.idMatricula) AS cantidad
         FROM FactMatricula fm
@@ -158,7 +163,7 @@ LEFT JOIN (SELECT * FROM UserCapacity uc
                     FROM DimFecha 
                   WHERE idFecha IN (:ids)))
     GROUP BY du.nombre 
-    ORDER BY du.nombre;`,
+    ORDER BY du.nombre ASC;`,
   getMatriculaRealF: `
       SELECT dc.nombre AS nombre, COUNT(fm.idMatricula) AS cantidad
         FROM FactMatricula fm
@@ -275,7 +280,7 @@ export const getEstatusQuery = (unidad?: string, carrera?: string, ids?: number[
     query += ` du.nombre,`;
   }
 
-  query += ` fm.estatus`;
+  query += ` cantidad DESC`;
 
   return query;
 };
