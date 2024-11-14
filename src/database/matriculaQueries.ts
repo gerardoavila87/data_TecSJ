@@ -204,12 +204,14 @@ LEFT JOIN (SELECT * FROM UserCapacity uc
       JOIN DimFecha df ON df.idFecha = fm.idFechaInicio
       JOIN DimUnidades du ON du.idUnidad = fm.idUnidadReal
       WHERE df.periodo = :periodo_actual
+      AND ISNULL(fm.idFechaTermino)
       GROUP BY du.idUnidad, du.nombre) p1
     LEFT JOIN 
       (SELECT du.idUnidad, du.nombre, COUNT(fm.idMatricula) AS matriculaAnt
       FROM FactMatricula fm
       JOIN DimFecha df ON df.idFecha = fm.idFechaInicio
       JOIN DimUnidades du ON du.idUnidad = fm.idUnidadReal
+       AND ISNULL(fm.idFechaTermino)
       WHERE df.periodo = :periodo_anterior
       GROUP BY du.idUnidad, du.nombre) p2
     ON p1.idUnidad = p2.idUnidad;
@@ -376,7 +378,7 @@ export const getPeriodoQuery = (ids?: number[], unidad?: string): string => {
   }
 
   if (unidad) {
-    query += `AND du.nombre = :unidad`;
+    query += `AND du.nombre = :unidad\n`;
   }
   query += `GROUP BY df.periodo
             ORDER BY LEFT(df.periodo, 4) ASC, RIGHT(df.periodo, 1) DESC;`

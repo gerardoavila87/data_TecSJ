@@ -51,10 +51,10 @@ const connectDB = async () => {
     console.log('CoreDB connected to core database successfully.');
     await dataDB.authenticate();
     console.log('DataDB Connected to data database successfully.');
-
+/*
     await coreBackupDB.authenticate();
     console.log('CoreDB connected to coreBackupDB database successfully.');
-  
+  */
   } catch (error) {
     console.error('Unable to connect to the databases:', error);
     process.exit(1);

@@ -90,6 +90,7 @@ export const getAllProcedencias = async (unidad?: string, carreras?: string, ini
         };
         
         const query = getProcedenciaQuery(unidad, carreras, ids);
+        console.log(query);
         const result = await dataDB.query(query, {
             type: QueryTypes.SELECT,
             replacements
