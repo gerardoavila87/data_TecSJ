@@ -88,13 +88,24 @@ export const queries = {
             JOIN DimFecha df ON df.idFecha = fc.idFechaInicio 
            WHERE fc.idFechaTermino IS NULL 
              AND fc.periodo = :periodo
-        GROUP BY df.idFecha;`
+        GROUP BY df.idFecha;`,
+    getCaptacionExamen: `
+           SELECT du.nombre AS nombre, du.clave AS clave, 
+                  COUNT(fc.idCaptacion) AS aspirantes, 
+                  SUM(CASE WHEN dec2.estatus = 'EXAMEN PAGADO' THEN 1 ELSE 0 END) AS examenPagado
+             FROM FactCaptacion fc
+        LEFT JOIN DimUnidades du ON du.idUnidad = fc.IdUnidadReal
+        LEFT JOIN DimCarreras dc ON dc.idCarrera = fc.idCarrera
+        LEFT JOIN DimEstatusCaptacion dec2 ON dec2.idEstatus = fc.idEstatus
+            WHERE fc.idFechaTermino IS NULL 
+              AND fc.periodo = :periodo
+         GROUP BY du.idUnidad, du.nombre, du.clave
+         ORDER BY du.nombre;`
 };
 
 export const getCaptacion = (filtro?: string, unidad?: string, carreras?: string): string => {
     let selectFields = ['COUNT(fc.idCaptacion) AS cantidad'];
     let joins = [
-        
         'LEFT JOIN DimUnidades du ON du.idUnidad = fc.IdUnidadReal',
         'LEFT JOIN DimCarreras dc ON dc.idCarrera = fc.idCarrera'
     ];

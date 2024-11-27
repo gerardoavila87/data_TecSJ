@@ -5,37 +5,46 @@ import { FechaType } from '../models/fechaModel';
 
 export const getFechaAct = async () => {
     try {
-        const esp = await dataDB.query(queries.setEspanol);
-        console.log(esp);
-        let idFecha: { id: string }[] = await dataDB.query(queries.getFechaAct, {
-            type: QueryTypes.SELECT,
-        });
-        console.log(idFecha);
-
-        if (idFecha.length === 0) {
-            const periodoR = await coreDB.query(queries.getPeriodo, {
-                type: QueryTypes.SELECT,
-            }) as { periodo: string }[];
-            if (periodoR.length > 0) {
-                await dataDB.query(queries.setEspanol);
-                await dataDB.query(queries.setFechaAct, {
-                    type: QueryTypes.INSERT,
-                    replacements: { period: periodoR[0].periodo }
-                });
-                idFecha = await dataDB.query(queries.getFechaAct, {
-                    type: QueryTypes.SELECT,
-                }) as { id: string }[];
-            } else {
-                throw new Error("No se encontró ningún periodo en la base de datos core");
-            }
+        const [periodoR] = await Promise.all([
+            coreDB.query(queries.getPeriodo, { type: QueryTypes.SELECT }) as Promise<{ periodo: string }[]>,
+        ]);
+        if (!periodoR || periodoR.length === 0 || !periodoR[0].periodo) {
+            throw new Error("No se encontró ningún periodo en la base de datos core");
         }
-        console.log(idFecha);
-        return idFecha.length > 0 ? idFecha[0].id : null;
+        const periodo = periodoR[0].periodo;
+        const transaction = await dataDB.transaction();
+        try {
+            const idFecha = await dataDB.query(queries.getFechaAct, {
+                type: QueryTypes.SELECT,
+                transaction
+            }) as { id: string }[];
+
+            if (idFecha.length > 0) {
+                await transaction.commit();
+                return idFecha[0].id;
+            }
+            const result = await dataDB.query(queries.setFechaAct, {
+                type: QueryTypes.INSERT,
+                replacements: { period: periodo },
+                transaction,
+            });
+            const newIdFecha = await dataDB.query(queries.getFechaAct, {
+                type: QueryTypes.SELECT,
+                transaction,
+            }) as { id: string }[];
+            await transaction.commit();
+            return newIdFecha[0].id;
+        } catch (error) {
+            await transaction.rollback();
+            throw error;
+        }
     } catch (error) {
-        console.error("Error obteniendo el ID de la fecha:", error);
-        throw error; // Lanza el error para que pueda ser manejado por el controlador
+        console.error("Error en getFechaAct:", error);
+        throw error;
     }
 };
+
+
 
 export const getFechaData = async (idReq: string): Promise<FechaType[]> => {
     try {
@@ -90,6 +99,18 @@ export const getPeriodo = async () => {
             type: QueryTypes.SELECT
         }) as { periodo: string }[];
         return periodo[0].periodo;
+    } catch (error) {
+        console.error("Error obteniendo el periodo:", error);
+        throw error;
+    }
+}
+
+export const getDate = async () => {
+    try {
+        const date = await dataDB.query(queries.getDate, {
+            type: QueryTypes.SELECT
+        }) as any[];
+        return date[0] || [];
     } catch (error) {
         console.error("Error obteniendo el periodo:", error);
         throw error;

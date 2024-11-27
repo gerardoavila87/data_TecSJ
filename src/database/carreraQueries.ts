@@ -82,10 +82,11 @@ SELECT dc.clave, dc.abreviacion, dc.nombre, COUNT(fm.idMatricula) AS cantidad
         GROUP BY fm.idCarrera
  */
 
-  let query = `SELECT dc.clave, dc.abreviacion, dc.nombre, COUNT(fm.idMatricula) AS estudiantes
+  let query = `SELECT dc.clave, dc.abreviacion, dc.nombre AS programa, dm.nombre AS modalidad, COUNT(fm.idMatricula) AS estudiantes
                  FROM FactMatricula fm
                  JOIN DimFecha df ON df.idFecha = fm.idFechaInicio
-                 JOIN DimCarreras dc ON dc.idCarrera = fm.idCarrera\n`;
+                 JOIN DimCarreras dc ON dc.idCarrera = fm.idCarrera
+                 JOIN DimModalidades dm ON dm.idModalidad = fm.idModalidad\n`;
 
   if (unidad) {
     query += `JOIN DimUnidades du ON du.idUnidad = fm.idUnidadReal\n`;

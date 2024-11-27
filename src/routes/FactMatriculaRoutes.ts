@@ -29,5 +29,6 @@ router.get('/matricula/semestre', matriculaController.getSemestreGeneral);
 
 router.get('/matricula/variacion', matriculaController.getMatriculaVariacion);
 
+router.get('/matricula/duplicados', matriculaController.getDuplicados);
 
 export default router;

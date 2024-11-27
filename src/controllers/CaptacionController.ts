@@ -47,7 +47,18 @@ export const getMaxPeriodo = async (req: Request, res: Response) => {
 
 export const getCaptacionFecha = async (req: Request, res: Response) => {
     try {
-        const data = await captacionServices.getCaptacionFecha();
+        const { periodo } = req.query;
+        const data = await captacionServices.getCaptacionFecha(periodo as string);
+        res.json(data);
+    } catch (error) {
+        res.status(500).json({ error: (error as Error).message });
+    }
+}
+
+export const getCaptacionExamen = async (req: Request, res: Response) => {
+    try {
+        const { periodo } = req.query;
+        const data = await captacionServices.getCaptacionExamen(periodo as string);
         res.json(data);
     } catch (error) {
         res.status(500).json({ error: (error as Error).message });

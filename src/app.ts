@@ -16,12 +16,12 @@ const app = express();
 connectDB();
 
 // Configuración de CORS
-app.use(cors({
-  origin: 'http://localhost:3000', 
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-}));
-app.use(express.json());  // Asegúrate de que el cuerpo de la solicitud se pueda parsear como JSON
+
+// Configuración de CORS
+app.use(cors());  // Permite todas las solicitudes desde cualquier origen
+
+app.use(express.json());  
+
 
 // Rutas
 app.use('/api', FactMatriculaRoutes);

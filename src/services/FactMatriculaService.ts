@@ -87,10 +87,12 @@ export const setMatricula = async (matricula: MatriculaDataType) => {
 
 export const updateMatriculaFechaTermino = async (idEstudiante: string | null, idFecha: string | null) => {
     try {
+        const periodo = await getPeriodo();
         const idMatricula = await dataDB.query(queries.getUltimaMatriculaEstudiante, {
             type: QueryTypes.SELECT,
             replacements: {
-                idEstudiante: idEstudiante
+                idEstudiante: idEstudiante,
+                periodo: periodo
             }
         }) as any[];
         const matricula = await dataDB.query(queries.upMatriculaFechaTermino, {
@@ -173,7 +175,222 @@ export const insertarNuevasMatriculas = async () => {
     };
 };
 
+export const compareMatricula = async () => {
+    const [matriculaCore, matriculaData, idFechaActual] = await Promise.all([
+        getMatriculaCore(),
+        getMatriculaData(),
+        getFechaAct()
+    ]);
 
+    const matriculaDataMap = new Map(matriculaData?.map(data => [data.nocontrol, data]));
+
+    const matriculaNueva = matriculaCore?.filter(coreStudent => !matriculaDataMap.has(coreStudent.nocontrol)) ?? [];
+    const estudiantesModificados = matriculaCore?.filter(coreStudent => {
+        const matchingStudent = matriculaDataMap.get(coreStudent.nocontrol);
+        return matchingStudent && (
+            coreStudent.curp !== matchingStudent.curp ||
+            coreStudent.lugarNacimiento !== matchingStudent.lugarNacimiento ||
+            coreStudent.nombre !== matchingStudent.nombre ||
+            coreStudent.primerApellido !== matchingStudent.primerApellido ||
+            coreStudent.segundoApellido !== matchingStudent.segundoApellido ||
+            coreStudent.seguro !== matchingStudent.seguro ||
+            coreStudent.genero !== matchingStudent.genero ||
+            coreStudent.celular !== matchingStudent.celular ||
+            coreStudent.correo !== matchingStudent.correo ||
+            coreStudent.indigena !== matchingStudent.indigena
+        );
+    }) ?? [];
+    const estudiantesModificadosSet = new Set(estudiantesModificados.map(est => est.nocontrol));
+
+    const matriculaModificada = matriculaCore?.filter(coreStudent => {
+        const matchingStudent = matriculaDataMap.get(coreStudent.nocontrol);
+        return matchingStudent && !estudiantesModificadosSet.has(coreStudent.nocontrol) && (
+            coreStudent.carrera !== matchingStudent.carrera ||
+            coreStudent.modalidad !== matchingStudent.modalidad ||
+            //coreStudent.estudios !== matchingStudent.estudios ||
+            //coreStudent.entidad !== matchingStudent.entidad ||
+            //coreStudent.municipio !== matchingStudent.municipio ||
+            coreStudent.nombreUReal !== matchingStudent.nombreUReal ||
+            coreStudent.nombreUOficial !== matchingStudent.nombreUOficial ||
+            //coreStudent.discapacidad !== matchingStudent.discapacidad ||
+            coreStudent.semestre !== matchingStudent.semestre ||
+            coreStudent.status !== matchingStudent.status
+        );
+    }) ?? [];
+
+    console.log(`Nuevas matrículas: ${matriculaNueva.length}`);
+    console.log(`Estudiantes modificados: ${estudiantesModificados.length}`);
+    console.log(`Matrículas modificadas: ${matriculaModificada.length}`);
+
+    if (matriculaNueva?.length > 0) {
+        await procesarMatriculaNueva(matriculaNueva, idFechaActual);
+    }
+    if (estudiantesModificados?.length > 0) {
+        await procesarEstudiantesModificados(estudiantesModificados, idFechaActual);
+    }
+    if (matriculaModificada?.length > 0) {
+        await procesarMatriculaModificada(matriculaModificada, idFechaActual);
+    }
+
+    const t = await dataDB.transaction();
+    let dup;
+    try {
+        const duplicados = await getDuplicados() as any[];
+        dup = duplicados;
+        await Promise.all(duplicados.map(async duplicado => {
+            await updateMatriculaFechaTermino(duplicado.idEstudiante, idFechaActual);
+            console.log(`Duplicado ${duplicado.idEstudiante}`);
+        }));
+        await t.commit();
+    } catch (error) {
+        await t.rollback();
+        throw error;
+    }
+    console.log(dup.length);
+    console.log("Procesamiento completado");
+};
+
+export const procesarMatriculaNueva = async (matriculaNueva: any[], idFechaActual: string) => {
+    const operaciones = matriculaNueva.map(async matricula => {
+        const nuevoEstudiante: EstudianteType = {
+            nocontrol: matricula.nocontrol,
+            curp: matricula.curp,
+            lugarNacimiento: matricula.lugarNacimiento,
+            nombre: matricula.nombre,
+            primerApellido: matricula.primerApellido,
+            segundoApellido: matricula.segundoApellido,
+            seguro: matricula.seguro,
+            genero: matricula.genero,
+            celular: matricula.celular,
+            correo: matricula.correo,
+            indigena: matricula.indigena
+        };
+
+        const idEstudiante = await setEstudianteData(nuevoEstudiante);
+
+        const [idCarrera, idModalidad, idEstudio, idProcedencia, idUnidadReal, idUnidadOficial, idDiscapacidad] = await Promise.all([
+            getIdCarreraData(matricula.carrera),
+            getIdModalidadData(matricula.modalidad),
+            getIdEstudioData(matricula.estudios),
+            getIdProcedenciaData({ municipio: matricula.municipio, estado: matricula.entidad }),
+            getIdUnidadData(matricula.nombreUReal),
+            getIdUnidadData(matricula.nombreUOficial),
+            getIdDiscapacidadData(matricula.discapacidad)
+        ]);
+
+        const nuevaMatricula: MatriculaDataType = {
+            idEstudiante: idEstudiante!,
+            idCarrera: idCarrera,
+            idModalidad: idModalidad,
+            idEstudio: idEstudio,
+            idProcedencia: idProcedencia,
+            idUnidadReal: idUnidadReal,
+            idUnidadOficial: idUnidadOficial,
+            idDiscapacidad: idDiscapacidad,
+            idFechaInicio: idFechaActual,
+            idFechaTermino: null,
+            semestre: matricula.semestre,
+            status: matricula.status
+        };
+
+        await setMatricula(nuevaMatricula);
+    });
+
+    await Promise.all(operaciones);
+};
+
+export const procesarMatriculaModificada = async (matriculaModificada: any[], idFechaActual: string) => {
+    const operaciones = matriculaModificada.map(async matricula => {
+        const idEstudiante = await getIdEstudianteData(matricula.nocontrol);
+        if (idEstudiante) {
+            await updateMatriculaFechaTermino(idEstudiante, idFechaActual);
+        }
+        const [idCarrera, idModalidad, idEstudio, idProcedencia, idUnidadReal, idUnidadOficial, idDiscapacidad] = await Promise.all([
+            getIdCarreraData(matricula.carrera),
+            getIdModalidadData(matricula.modalidad),
+            getIdEstudioData(matricula.estudios),
+            getIdProcedenciaData({ municipio: matricula.municipio, estado: matricula.entidad }),
+            getIdUnidadData(matricula.nombreUReal),
+            getIdUnidadData(matricula.nombreUOficial),
+            getIdDiscapacidadData(matricula.discapacidad)
+        ]);
+
+        const nuevaMatricula: MatriculaDataType = {
+            idEstudiante: idEstudiante!,
+            idCarrera: idCarrera,
+            idModalidad: idModalidad,
+            idEstudio: idEstudio,
+            idProcedencia: idProcedencia,
+            idUnidadReal: idUnidadReal,
+            idUnidadOficial: idUnidadOficial,
+            idDiscapacidad: idDiscapacidad,
+            idFechaInicio: idFechaActual,
+            idFechaTermino: null,
+            semestre: matricula.semestre,
+            status: matricula.status
+        };
+        await setMatricula(nuevaMatricula);
+    });
+
+    await Promise.all(operaciones);
+};
+
+export const procesarEstudiantesModificados = async (estudiantesModificados: any[], idFechaActual: string) => {
+    const operaciones = estudiantesModificados.map(async estudiante => {
+        const idEstudianteAnterior = await getIdEstudianteData(estudiante.nocontrol);
+        if (idEstudianteAnterior) {
+            await updateMatriculaFechaTermino(idEstudianteAnterior, idFechaActual);
+        }
+
+        const nuevoEstudiante: EstudianteType = {
+            nocontrol: estudiante.nocontrol,
+            curp: estudiante.curp,
+            lugarNacimiento: estudiante.lugarNacimiento,
+            nombre: estudiante.nombre,
+            primerApellido: estudiante.primerApellido,
+            segundoApellido: estudiante.segundoApellido,
+            seguro: estudiante.seguro,
+            genero: estudiante.genero,
+            celular: estudiante.celular,
+            correo: estudiante.correo,
+            indigena: estudiante.indigena
+        };
+
+        const idEstudianteNuevo = await setEstudianteData(nuevoEstudiante);
+
+        const [idCarrera, idModalidad, idEstudio, idProcedencia, idUnidadReal, idUnidadOficial, idDiscapacidad] = await Promise.all([
+            getIdCarreraData(estudiante.carrera),
+            getIdModalidadData(estudiante.modalidad),
+            getIdEstudioData(estudiante.estudios),
+            getIdProcedenciaData({ municipio: estudiante.municipio, estado: estudiante.entidad }),
+            getIdUnidadData(estudiante.nombreUReal),
+            getIdUnidadData(estudiante.nombreUOficial),
+            getIdDiscapacidadData(estudiante.discapacidad)
+        ]);
+
+        const nuevaMatricula: MatriculaDataType = {
+            idEstudiante: idEstudianteNuevo!,
+            idCarrera: idCarrera,
+            idModalidad: idModalidad,
+            idEstudio: idEstudio,
+            idProcedencia: idProcedencia,
+            idUnidadReal: idUnidadReal,
+            idUnidadOficial: idUnidadOficial,
+            idDiscapacidad: idDiscapacidad,
+            idFechaInicio: idFechaActual,
+            idFechaTermino: null,
+            semestre: estudiante.semestre,
+            status: estudiante.status
+        };
+
+        await setMatricula(nuevaMatricula);
+    });
+
+    await Promise.all(operaciones);
+};
+
+
+/*
 export const compareMatricula = async () => {
     const [matriculaCore, matriculaData, idFechaActual] = await Promise.all([
         getMatriculaCore(),
@@ -193,8 +410,8 @@ export const compareMatricula = async () => {
             return true;
         }
 
-        const fieldsEstudiante: (keyof typeof coreStudent)[] = ['lugarNacimiento', 'nombre', 'primerApellido', 'segundoApellido', 'genero', 'indigena', 'status'];
-        const fieldsDimensiones: (keyof typeof coreStudent)[] = ['carrera', 'modalidad', 'nombreUReal', 'nombreUOficial'];
+        const fieldsEstudiante: (keyof typeof coreStudent)[] = ['lugarNacimiento', 'nombre', 'primerApellido', 'segundoApellido', 'genero', 'indigena'];
+        const fieldsDimensiones: (keyof typeof coreStudent)[] = ['carrera', 'modalidad', 'nombreUReal', 'nombreUOficial', 'entidad', 'municipio'];
         const fieldsMatricula: (keyof typeof coreStudent)[] = ['semestre', 'status'];
 
         const diferenciasEstudiante = fieldsEstudiante.some(field => coreStudent[field] !== matchingStudent[field]);
@@ -286,9 +503,9 @@ export const compareMatricula = async () => {
         matriculaDataLength: matriculaData?.length,
         matriculaNuevaLength: matriculaNueva?.length
     };
-};
+};*/
 
-const getDuplicados = async () => {
+export const getDuplicados = async () => {
     const periodo = await getPeriodo();
     const result = await dataDB.query(queries.getDuplicados, {
         type: QueryTypes.SELECT,

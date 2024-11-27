@@ -18,7 +18,8 @@ export const queries = {
          JOIN UserAddress ua ON ua.user_IdAddress = u.user_IdAddress
          JOIN OrgLocal ol ON ol.org_IdLocal = us.org_IdLocal
          JOIN OrgCampus oc ON oc.org_IdCampus = us.plantel 
-        WHERE us.tecnm ='s';`,
+        WHERE us.tecnm ='s'
+        limit 2800;`,
   getMatriculaCoreBackup: `
           SELECT us.code AS nocontrol, u.curp AS curp, u.state AS lugarNacimiento,
           u.name AS nombre, u.firstName AS primerApellido, u.secondName AS segundoApellido,
@@ -71,8 +72,10 @@ LEFT JOIN (SELECT * FROM UserCapacity uc
      WHERE idMatricula = :idMatricula;`,
   getUltimaMatriculaEstudiante: `
     SELECT MAX(idMatricula) as matricula
-      FROM FactMatricula
-     WHERE idEstudiante = :idEstudiante`,
+      FROM FactMatricula fm
+      JOIN DimFecha df ON df.idFecha = fm.idFechaInicio 
+     WHERE idEstudiante = :idEstudiante
+       AND df.periodo = :periodo;`,
   getDuplicados: `
       SELECT MIN(fm.idMatricula) AS idMatricula, de.idEstudiante 
         FROM FactMatricula fm

@@ -156,3 +156,12 @@ export const getMatriculaVariacion = async (req: Request, res: Response) => {
     res.status(500).json({ error: (error as Error).message });
   }
 };
+
+export const getDuplicados = async (req: Request, res: Response) => {
+  try {
+    const data = await matriculaService.getDuplicados();
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: (error as Error).message });
+  }
+};

@@ -1,16 +1,21 @@
 export const queries = {
   getFechaAct: `
     SELECT df.idFecha AS id
-      FROM DimFecha df
-     WHERE df.dia = LPAD(DATE_FORMAT(NOW(),'%e'),2,0)
-       AND df.mes = LOWER(DATE_FORMAT(NOW(),'%M'))
-       AND df.anio = DATE_FORMAT(NOW(),'%Y');`,
+      FROM DimFecha df 
+     WHERE dia = LPAD(DATE_FORMAT(NOW(), '%e'), 2, '0')
+       AND mes = LOWER(DATE_FORMAT(NOW(), '%M'))
+       AND anio = DATE_FORMAT(NOW(), '%Y');`,
+  getDate: `
+    SELECT LPAD(DATE_FORMAT(NOW(), '%e'), 2, '0') AS dia,
+           LOWER(DATE_FORMAT(NOW(), '%M')) AS mes, 
+           DATE_FORMAT(NOW(), '%Y') AS anio;`,
   getFecha: `
     SELECT *
       FROM DimFecha df
      WHERE df.idFecha = :id`,
   setEspanol: `
     SET lc_time_names = 'es_ES';`,
+  getIdioma: `SHOW VARIABLES LIKE 'lc_time_names';`,
   setFechaAct: `
     INSERT INTO DimFecha 
          VALUES (NULL,

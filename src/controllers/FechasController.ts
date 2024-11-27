@@ -29,3 +29,12 @@ export const getFecha = async (req: Request, res: Response) => {
     
   }
 }
+
+export const getDate = async (req: Request, res: Response) => {
+  try {
+    const data = await fechaServices.getDate();
+    res.json(data);
+  } catch (error) {
+    
+  }
+}

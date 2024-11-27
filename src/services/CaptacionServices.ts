@@ -291,3 +291,19 @@ export const getCaptacionFecha = async (periodo?: string) => {
         throw error;
     }
 }
+
+export const getCaptacionExamen = async (periodo?: string) => {
+    try {
+        let periodoActivo;
+        !periodo ? periodoActivo = await getMaxPeriodo() : periodoActivo = periodo;
+        const captacion = await dataDB.query(queries.getCaptacionExamen, {
+            type: QueryTypes.SELECT,
+            replacements: {
+                periodo: periodoActivo
+            }
+        });
+        return captacion;
+    } catch (error) {
+        throw error;
+    }
+}

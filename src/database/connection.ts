@@ -40,7 +40,14 @@ const dataDB = new Sequelize(
     dialect: 'mariadb',
     logging: false,
     dialectOptions: {
-      connectTimeout: 30000 // 20 segundos
+      connectTimeout: 30000, // 20 segundos
+      initSql: ['SET lc_time_names = "es_ES"']
+    },
+    pool: {
+      max: 5,
+      min: 0,
+      acquire: 30000,
+      idle: 10000,
     }
   }
 );
@@ -49,12 +56,16 @@ const connectDB = async () => {
   try {
     await coreDB.authenticate();
     console.log('CoreDB connected to core database successfully.');
+
     await dataDB.authenticate();
-    console.log('DataDB Connected to data database successfully.');
-/*
-    await coreBackupDB.authenticate();
-    console.log('CoreDB connected to coreBackupDB database successfully.');
-  */
+    console.log('DataDB Connected to data database successfully.');    
+    
+    await dataDB.query("SET lc_time_names = 'es_ES';");
+    console.log('Idioma configurado a español para dataDB.');
+    /*
+        await coreBackupDB.authenticate();
+        console.log('CoreDB connected to coreBackupDB database successfully.');
+      */
   } catch (error) {
     console.error('Unable to connect to the databases:', error);
     process.exit(1);
