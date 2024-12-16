@@ -116,3 +116,15 @@ export const getDate = async () => {
         throw error;
     }
 }
+
+export const getLast = async () => {
+    try {
+        const date = await dataDB.query(queries.getLast, {
+            type: QueryTypes.SELECT
+        }) as any[];
+        return date[0] || [];
+    } catch (error) {
+        console.error("Error obteniendo el periodo:", error);
+        throw error;
+    }
+}

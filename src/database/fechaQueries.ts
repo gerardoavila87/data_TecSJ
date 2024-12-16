@@ -9,6 +9,12 @@ export const queries = {
     SELECT LPAD(DATE_FORMAT(NOW(), '%e'), 2, '0') AS dia,
            LOWER(DATE_FORMAT(NOW(), '%M')) AS mes, 
            DATE_FORMAT(NOW(), '%Y') AS anio;`,
+  getLast: `
+      SELECT CONCAT_WS(" ", df.dia, df.mes, df.anio) AS ultimaFecha
+        FROM FactCaptacion fc
+        JOIN DimFecha df ON df.idFecha = fc.idFechaInicio
+    ORDER BY fc.idFechaInicio DESC
+       LIMIT 1;`,
   getFecha: `
     SELECT *
       FROM DimFecha df

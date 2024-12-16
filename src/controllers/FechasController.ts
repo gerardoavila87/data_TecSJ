@@ -38,3 +38,12 @@ export const getDate = async (req: Request, res: Response) => {
     
   }
 }
+
+export const getLast = async (req: Request, res: Response) => {
+  try {
+    const data = await fechaServices.getLast();
+    res.json(data);
+  } catch (error) {
+    
+  }
+}
