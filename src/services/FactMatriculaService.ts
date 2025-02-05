@@ -574,14 +574,15 @@ export const getMatriculaUnidadReal = async (periodo?: string) => {
         throw error;
     }
 };
-export const getMatriculaUnidadRealClase = async (clase: string) => {
+export const getMatriculaUnidadRealClase = async (clase: string, periodo?: string) => {
     try {
-        const periodo = await getPeriodo();
+        let periodoActivo;
+        !periodo ? periodoActivo = await getPeriodo() : periodoActivo = periodo;
         const matricula = await dataDB.query(queries.getMatriculaUnidadRealClase, {
             type: QueryTypes.SELECT,
             replacements: {
                 clase: clase,
-                periodo: periodo
+                periodo: periodoActivo
             }
         });
         return matricula;

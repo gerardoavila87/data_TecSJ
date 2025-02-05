@@ -28,11 +28,11 @@ export const queries = {
                  LPAD(DATE_FORMAT(NOW(),'%e'),2,0), 
                  LOWER(DATE_FORMAT(NOW(),'%M')), 
                  DATE_FORMAT(NOW(),'%Y'), 
-                 :period)`,
+                 :period, 'Control')`,
   getPeriodo: `
     SELECT CONCAT(dc.startYear, dc.code) AS periodo 
       FROM DateCalendars dc 
-     WHERE date_IdCalendar = 79`,
+     WHERE date_idCalendar = 80`,
   getIdsFechas: `
        SELECT idFecha 
          FROM DimFecha 

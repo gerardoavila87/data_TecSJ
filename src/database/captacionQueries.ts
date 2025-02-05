@@ -174,7 +174,7 @@ export const getCaptacion = (filtro?: string, unidad?: string, carreras?: string
             selectFields.unshift('dec2.estatus');
             joins.push('LEFT JOIN DimEstatusCaptacion dec2 ON dec2.idEstatus = fc.idEstatus');
             groupByFields.push('fc.idEstatus');
-            orderByFields.push('dec2.estatus');
+            orderByFields.push('cantidad DESC');
             break;
         case 'examen':
             selectFields.unshift(`IF(fc.pagoExamen=1,'Con pago', 'Sin pago') AS pagoExamen`);
