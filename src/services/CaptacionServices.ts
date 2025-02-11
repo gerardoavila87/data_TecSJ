@@ -231,7 +231,6 @@ export const getAllCaptacion = async (filtro?: string, unidad?: string, carreras
         !periodo ? periodoActivo = await getMaxPeriodo() : periodoActivo = periodo;
 
         const query = getCaptacion(filtro, unidad, carreras);
-        console.log(query);
         const replacements: any = {
             unidad: unidad,
             carreras: carreras,

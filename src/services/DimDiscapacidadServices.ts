@@ -133,7 +133,6 @@ export const getAllDiscapacidad = async (periodo?: string) => {
         !periodo ? periodoActivo = await getPeriodo() : periodoActivo = periodo;
         replacements.periodo = periodoActivo;
         const query = queries.getAllDiscapacidades;
-        console.log(query);
         const result = await dataDB.query(query, {
             type: QueryTypes.SELECT,
             replacements

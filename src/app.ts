@@ -14,7 +14,6 @@ import captacionRoutes from './routes/CaptacionRoutes';
 import fs from 'fs';
 import https from 'https';
 
-
 connectDB();
 const PORT: number = parseInt( process.env.PORT as string );
 const app = express();

@@ -9,6 +9,7 @@ router.get('/fecha', fechasController.getFecha);
 router.get('/date', fechasController.getDate);
 router.get('/captacionfin', fechasController.getLast);
 
+router.get('/periodos', fechasController.getPeriodos);
 
 
 export default router;

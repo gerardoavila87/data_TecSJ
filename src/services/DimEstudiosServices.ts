@@ -98,7 +98,7 @@ export const getAllEstudio = async (unidad?: string, carreras?: string, inicio?:
         const replacements: any = {};
 
         if (inicio && fin) {
-            const idsRes = await getIdsFechas(inicio, fin) as FechaId[];
+            const idsRes = await getIdsFechas(inicio, fin, periodo) as FechaId[];
             ids = idsRes.map(item => item.idFecha);
         }
 

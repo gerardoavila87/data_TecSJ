@@ -47,3 +47,13 @@ export const getLast = async (req: Request, res: Response) => {
     
   }
 }
+
+export const getPeriodos = async (req: Request, res: Response) => {
+  try {
+    const periodos = await fechaServices.getPeriodos();
+    res.status(200).json(periodos);
+  } catch (error) {
+    console.error('Error al obtener los periodos:', error);
+    res.status(500).json({ message: 'Error interno del servidor' });
+  }
+};
