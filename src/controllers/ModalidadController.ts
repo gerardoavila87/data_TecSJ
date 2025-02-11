@@ -5,19 +5,19 @@ import * as modalidadServices from '../services/DimModalidadServices';
 
 export const getModalidades = async (req: Request, res: Response) => {
   try {
-    const { unidad, fechaInicio, fechaFin } = req.params;
+    const { unidad, fechaInicio, fechaFin, periodo } = req.params;
     console.log('unidad:' + unidad +'fechaInicio:' + fechaInicio + 'fechaFin:' + fechaFin )
     let modalidades;
     if (unidad && fechaInicio && fechaFin) {
       // Si se proporcionan unidad y fechas, filtra por ambas
-      modalidades = await modalidadServices.getModalidadesUnidadFecha(unidad, fechaInicio, fechaFin);
+      modalidades = await modalidadServices.getModalidadesUnidadFecha(unidad, fechaInicio, fechaFin, periodo);
     } else if (unidad) {
       // Si solo se proporciona la unidad
       modalidades = await modalidadServices.getModalidadesUnidad(unidad);
     } else if (fechaInicio && fechaFin) {
       // Si solo se proporcionan las fechas
       console.log('fechas');
-      modalidades = await modalidadServices.getModalidadesFecha(fechaInicio, fechaFin);
+      modalidades = await modalidadServices.getModalidadesFecha(fechaInicio, fechaFin, periodo);
     } else {
       // Si no se proporciona ni unidad ni fechas, obtener todas las modalidades
       modalidades = await modalidadServices.getModalidades();
@@ -31,7 +31,7 @@ export const getModalidades = async (req: Request, res: Response) => {
 
 export const getAllModalidades = async (req: Request, res: Response) => {
   try {
-    const {unidad, carreras, inicio, fin, periodo} = req.query;
+    const {unidad, carreras, inicio, fin, periodo} = req.body;
     const data = await modalidadServices.getAllModalidades(unidad as string, carreras as string, inicio as string, fin as string, periodo as string);
     res.json(data);
   } catch (error) {

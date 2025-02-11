@@ -30,16 +30,35 @@ export const queries = {
                  DATE_FORMAT(NOW(),'%Y'), 
                  :period)`,
   getPeriodo: `
-    SELECT CONCAT(dc.startYear, dc.code) AS periodo 
-      FROM DateCalendars dc 
-     WHERE status = 'ACTIVO'`,
-  getIdsFechas: `
-       SELECT idFecha 
-         FROM DimFecha 
-        WHERE CONCAT(anio, '-', mes, '-', dia)
-      BETWEEN :fechaInicio AND :fechaFin`,
+    SELECT CONCAT(dc.startYear, dc.code) AS periodo
+    FROM DateCalendars dc
+    ORDER BY dc.date_idCalendar DESC
+    LIMIT 1`,
+    getIdsFechas: `
+    SELECT idFecha 
+      FROM DimFecha 
+     WHERE CONCAT(anio, '-',
+                  CASE 
+                     WHEN mes = 'enero' THEN '1'
+                     WHEN mes = 'febrero' THEN '2'
+                     WHEN mes = 'marzo' THEN '3'
+                     WHEN mes = 'abril' THEN '4'
+                     WHEN mes = 'mayo' THEN '5'
+                     WHEN mes = 'junio' THEN '6'
+                     WHEN mes = 'julio' THEN '7'
+                     WHEN mes = 'agosto' THEN '8'
+                     WHEN mes = 'septiembre' THEN '9'
+                     WHEN mes = 'octubre' THEN '10'
+                     WHEN mes = 'noviembre' THEN '11'
+                     WHEN mes = 'diciembre' THEN '12'
+                  END,
+                  '-', dia
+             ) 
+           BETWEEN :fechaInicio AND :fechaFin
+        AND periodo = :periodo`,
   getAllFechas: `
     SELECT * 
       FROM DimFecha
-     WHERE periodo = :periodo`
+     WHERE periodo = :periodo`,
+  getPeriodos: 'SELECT DISTINCT periodo FROM DimFecha'
 }

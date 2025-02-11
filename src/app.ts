@@ -1,6 +1,5 @@
 import express from 'express';
-import fs from 'fs';
-import https from 'https';
+import cors from 'cors';  // Importa el paquete cors
 import { connectDB } from './database/connection';
 import FactMatriculaRoutes from './routes/FactMatriculaRoutes';
 import UnidadRoutes from './routes/UnidadRoutes';
@@ -12,23 +11,22 @@ import ProcedenciaRoutes from './routes/procedenciaRoutes';
 import EstudiantesRoutes from './routes/estudiantesRoutes';
 import FechasRoutes from './routes/FechasRoutes';
 import captacionRoutes from './routes/CaptacionRoutes';
+import fs from 'fs';
+import https from 'https';
 
+connectDB();
 const PORT: number = parseInt( process.env.PORT as string );
 const app = express();
-connectDB();
-
-// Configuración de CORS
-
-// Configuración de CORS
-app.use(express.json());  
+app.use(express.json());
 app.use(( req, res, next ) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Headers', 'Authorization, api_key, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Request-Method');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PATCH, DELETE');
-  res.header('Allow', 'GET, POST, OPTIONS, PATCH, DELETE');
-  next();
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Headers', 'Authorization, api_key, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Request-Method');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PATCH, DELETE');
+    res.header('Allow', 'GET, POST, OPTIONS, PATCH, DELETE');
+    next();
 });
-if ( process.env.NODE_ENV === 'dev' ) {
+
+if ( process.env.NODE_ENV === 'development' ) {
   app.listen( PORT , () => {});
 }else{
   const privateKey  = fs.readFileSync( process.env.SSL_KEY as string, 'utf8');
@@ -36,7 +34,7 @@ if ( process.env.NODE_ENV === 'dev' ) {
   const ca = fs.readFileSync( process.env.SSL_CA as string, 'utf8' );
   const credentials = { key: privateKey, ca: ca, cert: certificate };
   const app_ssl = https.createServer( credentials, app );
-  app_ssl.listen( PORT, () => { console.log('entro a https:') } );
+  app_ssl.listen( PORT, () => {} );
 }
 
 
@@ -53,6 +51,5 @@ app.use('/api', FechasRoutes);
 app.use('/api', captacionRoutes);
 
 app.get('/', (req, res) => {
-  res.send('API is running...');
+  res.send(`Data en producción está ejecutándose en https:${PORT}`);
 });
-
