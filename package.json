@@ -3,11 +3,10 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "build": "tsc && cp package.json data/ && cp ecosystem.config.js data/",
-    "dev": "nodemon --watch src --exec ts-node src/app.ts",
-    "pm2:start": "pm2 start ecosystem.config.js --env staging",
-    "pm2:stop": "pm2 stop 'data'",
-    "pm2:restart": "pm2 restart 'data'",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "start": "node dist/app.js",
+    "dev": "nodemon --exec ts-node src/app.ts",
     "matricula": "node data/runmatricula.js",
     "captacion": "node data/runcaptacion.js",
     "matriculaback": "node data/runmatriculabackup.js"
