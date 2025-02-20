@@ -7,9 +7,9 @@
     "build": "tsc",
     "start": "node dist/app.js",
     "dev": "nodemon --exec ts-node src/app.ts",
-    "matricula": "node dist/runmatricula.js",
-    "captacion": "node dist/runcaptacion.js",
-    "matriculaback": "node dist/runmatriculabackup.js"
+    "matricula": "node data/runmatricula.js",
+    "captacion": "node data/runcaptacion.js",
+    "matriculaback": "node data/runmatriculabackup.js"
   },
   "keywords": [],
   "author": "",
@@ -30,6 +30,8 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
+    "fs": "^0.0.1-security",
+    "https": "^1.0.0",
     "mariadb": "^3.3.1",
     "mongoose": "^8.5.2",
     "mysql2": "^3.11.0",

@@ -75,7 +75,7 @@ export const getAllModalidades = async (unidad?: string, carreras?: string, inic
     try {
         let ids: number[] = [];
         if (inicio && fin) {
-            const resIds = await getIdsFechas(inicio, fin) as FechaId[];
+            const resIds = await getIdsFechas(inicio, fin, periodo) as FechaId[];
             ids = resIds.map(item => item.idFecha);
         }
 
@@ -129,9 +129,9 @@ export const getModalidadesUnidad = async (unidad: string) => {
     }
 };
 
-export const getModalidadesFecha = async (fechaInicio: string, fechaFin: string) => {
+export const getModalidadesFecha = async (fechaInicio: string, fechaFin: string, periodo:string) => {
     try {
-        const ids = await getIdFechas(fechaInicio, fechaFin);
+        const ids = await getIdFechas(fechaInicio, fechaFin, periodo);
         if (ids.length === 0) {
             return null;
         }
@@ -148,9 +148,9 @@ export const getModalidadesFecha = async (fechaInicio: string, fechaFin: string)
     }
 };
 
-export const getModalidadesUnidadFecha = async (unidad: string, fechaInicio: string, fechaFin: string) => {
+export const getModalidadesUnidadFecha = async (unidad: string, fechaInicio: string, fechaFin: string, periodo: string) => {
     try {
-        const ids = await getIdFechas(fechaInicio, fechaFin);
+        const ids = await getIdFechas(fechaInicio, fechaFin, periodo);
         if (ids.length === 0) {
             return null;
         }
@@ -168,9 +168,9 @@ export const getModalidadesUnidadFecha = async (unidad: string, fechaInicio: str
     }
 };
 
-export const getIdFechas = async (fechaInicio: string, fechaFin: string) => {
+export const getIdFechas = async (fechaInicio: string, fechaFin: string, periodo:string) => {
     try {
-        const idsRes = await getIdsFechas(fechaInicio, fechaFin) as FechaId[];
+        const idsRes = await getIdsFechas(fechaInicio, fechaFin, periodo) as FechaId[];
         const ids = idsRes.map(item => item.idFecha);
         console.log(ids);
         return ids;

@@ -521,11 +521,10 @@ export const getMatricula = async () => {
     return result;
 };
 
-export const getMatriculaUnidadRealF = async (fechaInicio: string, fechaFin: string) => {
+export const getMatriculaUnidadRealF = async (fechaInicio: string, fechaFin: string, period: string) => {
     try {
-        const idsRes = await getIdsFechas(fechaInicio, fechaFin) as FechaId[];
+        const idsRes = await getIdsFechas(fechaInicio, fechaFin, period) as FechaId[];
         const ids = idsRes.map(item => item.idFecha);
-        console.log(ids);
         const periodo = await getPeriodo();
         const matricula = await dataDB.query(queries.getMatriculaUnidadRealF, {
             type: QueryTypes.SELECT,
@@ -541,9 +540,9 @@ export const getMatriculaUnidadRealF = async (fechaInicio: string, fechaFin: str
     }
 };
 
-export const getMatriculaUnidadOficialF = async (fechaInicio: string, fechaFin: string) => {
+export const getMatriculaUnidadOficialF = async (fechaInicio: string, fechaFin: string, periodo: string) => {
     try {
-        const idsRes = await getIdsFechas(fechaInicio, fechaFin) as FechaId[];
+        const idsRes = await getIdsFechas(fechaInicio, fechaFin, periodo) as FechaId[];
         const ids = idsRes.map(item => item.idFecha);
         const matricula = await dataDB.query(queries.getMatriculaUnidadOficialF, {
             type: QueryTypes.SELECT,
@@ -577,7 +576,12 @@ export const getMatriculaUnidadReal = async (periodo?: string) => {
 export const getMatriculaUnidadRealClase = async (clase: string, periodo?: string) => {
     try {
         let periodoActivo;
-        !periodo ? periodoActivo = await getPeriodo() : periodoActivo = periodo;
+        if (!periodo){
+            periodoActivo = await getPeriodo();
+        }
+        else {
+            periodoActivo = periodo;
+        }
         const matricula = await dataDB.query(queries.getMatriculaUnidadRealClase, {
             type: QueryTypes.SELECT,
             replacements: {
@@ -641,9 +645,9 @@ export const getMatriculaRUnidad = async (unidad: string) => {
     }
 };
 
-export const getMatriculaRUnidadF = async (unidad: string, fechaInicio: string, fechaFin: string) => {
+export const getMatriculaRUnidadF = async (unidad: string, fechaInicio: string, fechaFin: string,period: string) => {
     try {
-        const idsRes = await getIdsFechas(fechaInicio, fechaFin) as FechaId[];
+        const idsRes = await getIdsFechas(fechaInicio, fechaFin, period) as FechaId[];
         const ids = idsRes.map(item => item.idFecha);
         const periodo = await getPeriodo();
         const matricula = await dataDB.query(queries.getMatriculaRealF, {
@@ -666,12 +670,11 @@ export const getEstatus = async (unidad?: string, carreras?: string, inicio?: st
         let ids: number[] = [];
 
         if (inicio && fin) {
-            const idsRes = await getIdsFechas(inicio, fin) as FechaId[];
+            const idsRes = await getIdsFechas(inicio, fin, periodo) as FechaId[];
             ids = idsRes.map(item => item.idFecha);
         }
 
         const query = getEstatusQuery(unidad, carreras, ids.length > 0 ? ids : undefined);
-        console.log(query);
         const replacements: any = {};
         let periodoActivo;
         !periodo ? periodoActivo = await getPeriodo() : periodoActivo = periodo;
@@ -694,7 +697,7 @@ export const getEstatus = async (unidad?: string, carreras?: string, inicio?: st
 export const getSemestre = async (unidad?: string, carreras?: string, inicio?: string, fin?: string, periodo?: string) => {
     let ids: number[] = [];
     if (inicio && fin) {
-        const resIds = await getIdsFechas(inicio, fin) as FechaId[];
+        const resIds = await getIdsFechas(inicio, fin, periodo) as FechaId[];
         ids = resIds.map(item => item.idFecha)
     }
 
@@ -735,10 +738,9 @@ export const getMatriculaRealTotal = async (unidad?: string, inicio?: string, fi
         let ids: number[] = [];
 
         if (inicio && fin) {
-            const resIds = await getIdsFechas(inicio, fin) as FechaId[];
+            const resIds = await getIdsFechas(inicio, fin, periodo) as FechaId[];
             ids = resIds.map(item => item.idFecha);
         }
-
         const query = getTotalQuery(ids, unidad);
         const replacements: any = {};
 
@@ -763,9 +765,8 @@ export const getMatriculaRealTotal = async (unidad?: string, inicio?: string, fi
 export const getMatriculaPeriodo = async (unidad?: string, inicio?: string, fin?: string, periodo?: string) => {
     try {
         let ids: number[] = [];
-
         if (inicio && fin) {
-            const resIds = await getIdsFechas(inicio, fin) as FechaId[];
+            const resIds = await getIdsFechas(inicio, fin, periodo) as FechaId[];
             ids = resIds.map(item => item.idFecha);
         }
         let periodoActivo;
@@ -777,17 +778,13 @@ export const getMatriculaPeriodo = async (unidad?: string, inicio?: string, fin?
 
         const query = getPeriodoQuery(ids, unidad);
         const replacements: any = {};
-        console.log(query);
-
         replacements.periodo = periodoActivo;
         if (unidad) replacements.unidad = unidad;
         if (ids.length > 0) replacements.ids = ids;
-
         const results = await dataDB.query(query, {
             type: QueryTypes.SELECT,
             replacements
         });
-
         return results;
     } catch (error) {
         throw new Error(`Error al ejecutar la consulta: ${error}`);
@@ -802,6 +799,7 @@ export const getMatriculaVariacion = async (periodo?: string) => {
         } else {
             periodoActivo = periodo;
         }
+        
         let anio: number = parseInt(periodoActivo.substring(0, 4));
         let code = periodoActivo.substring(4).toUpperCase();
         anio = anio - 1;

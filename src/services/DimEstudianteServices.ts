@@ -85,7 +85,7 @@ export const getEstudiantes = async (tipo?: string, unidad?: string, fechaInicio
 
         const replacements: any = {};
         if (fechaInicio && fechaFin) {
-            const idsRes = await getIdsFechas(fechaInicio, fechaFin) as FechaId[];
+            const idsRes = await getIdsFechas(fechaInicio, fechaFin, periodo) as FechaId[];
             ids = idsRes.map(item => item.idFecha);
         }
 
@@ -96,8 +96,6 @@ export const getEstudiantes = async (tipo?: string, unidad?: string, fechaInicio
         if (unidad != 'unidad') replacements.unidad = unidad;
         if (carreras) replacements.carreras = carreras;
         if (ids.length > 0) replacements.ids = ids;
-        console.log(periodoActivo);
-        console.log(ids);
         const result = await dataDB.query(query, {
             type: QueryTypes.SELECT,
             replacements 

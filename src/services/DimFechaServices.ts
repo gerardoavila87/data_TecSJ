@@ -62,11 +62,12 @@ export const getFechaData = async (idReq: string): Promise<FechaType[]> => {
     }
 };
 
-export const getIdsFechas = async (fechaInicio: string, fechaFin: string) => {
+export const getIdsFechas = async (fechaInicio: string, fechaFin: string, periodo?: string) => {
     try {
         const Ids = await dataDB.query(queries.getIdsFechas, {
             type: QueryTypes.SELECT,
             replacements: {
+                periodo: periodo,
                 fechaInicio: fechaInicio,
                 fechaFin: fechaFin
             }
@@ -123,6 +124,19 @@ export const getLast = async () => {
             type: QueryTypes.SELECT
         }) as any[];
         return date[0] || [];
+    } catch (error) {
+        console.error("Error obteniendo el periodo:", error);
+        throw error;
+    }
+}
+
+export const getPeriodos = async () => {
+    try {
+
+        const date = await dataDB.query(queries.getPeriodos,{
+            type: QueryTypes.SELECT
+        }) as any[];
+        return date
     } catch (error) {
         console.error("Error obteniendo el periodo:", error);
         throw error;

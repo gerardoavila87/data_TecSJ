@@ -135,7 +135,7 @@ export const getCarreraUR = async (unidad: string, inicio?: string, fin?: string
         let ids: number[] = [];
 
         if (inicio && fin) {
-            const resIds = await getIdsFechas(inicio, fin) as FechaId[];
+            const resIds = await getIdsFechas(inicio, fin, periodo) as FechaId[];
             ids = resIds.map(item => item.idFecha);
         }
 

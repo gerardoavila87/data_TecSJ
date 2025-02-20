@@ -22,7 +22,8 @@ export const setMatriculaBackup = async (req: Request, res: Response) => {
 export const getMatriculaURealF = async (req: Request, res: Response) => {
   try {
     const { fechaInicio, fechaFin } = req.params;
-    const data = await matriculaService.getMatriculaUnidadRealF(fechaInicio, fechaFin);
+    const { periodo } = req.body
+    const data = await matriculaService.getMatriculaUnidadRealF(fechaInicio, fechaFin, periodo);
     res.json(data);
   } catch (error) {
     res.status(500).json({ error: (error as Error).message });
@@ -32,7 +33,8 @@ export const getMatriculaURealF = async (req: Request, res: Response) => {
 export const getMatriculaUOficialF = async (req: Request, res: Response) => {
   try {
     const { fechaInicio, fechaFin } = req.params;
-    const data = await matriculaService.getMatriculaUnidadOficialF(fechaInicio, fechaFin);
+    const { periodo } = req.body
+    const data = await matriculaService.getMatriculaUnidadOficialF(fechaInicio, fechaFin, periodo);
     res.json(data);
   } catch (error) {
     res.status(500).json({ error: (error as Error).message });
@@ -80,8 +82,8 @@ export const getMatriculaR = async (req: Request, res: Response) => {
 
 export const getMatriculaRF = async (req: Request, res: Response) => {
   try {
-    const { unidad, fechaInicio, fechaFin } = req.params;
-    const data = await matriculaService.getMatriculaRUnidadF(unidad, fechaInicio, fechaFin);
+    const { unidad, fechaInicio, fechaFin, periodo } = req.params;
+    const data = await matriculaService.getMatriculaRUnidadF(unidad, fechaInicio, fechaFin, periodo);
     res.json(data);
   } catch (error) {
     res.status(500).json({ error: (error as Error).message });
@@ -91,8 +93,8 @@ export const getMatriculaRF = async (req: Request, res: Response) => {
 export const getMatriculaURealClase = async (req: Request, res: Response) => {
   try {
     const { clase } = req.params;
-    const { periodo } = req.query;
-    const data = await matriculaService.getMatriculaUnidadRealClase(clase, periodo as string);
+    const { periodo } = req.body;
+    const data = await matriculaService.getMatriculaUnidadRealClase(clase, periodo);
     res.json(data);
   } catch (error) {
     res.status(500).json({ error: (error as Error).message });
@@ -101,7 +103,7 @@ export const getMatriculaURealClase = async (req: Request, res: Response) => {
 
 export const getEstatusGeneral = async (req: Request, res: Response) => {
   try {
-    const { unidad, carreras, inicio, fin, periodo } = req.query;
+    const { unidad, carreras, inicio, fin, periodo } = req.body;
     const data = await matriculaService.getEstatus(unidad as string, carreras as string, inicio as string, fin as string, periodo as string);
     res.json(data);
   } catch (error) {
@@ -130,7 +132,7 @@ export const getMatriculaURealCorte = async (req: Request, res: Response) => {
 
 export const getMatriculaURealTotal = async (req: Request, res: Response) => {
   try {
-    const { inicio, fin, unidad, periodo } = req.query;
+    const { inicio, fin, unidad, periodo } = req.body;
     const data = await matriculaService.getMatriculaRealTotal(unidad as string, inicio as string, fin as string, periodo as string);
     res.json(data);
   } catch (error) {
@@ -140,7 +142,7 @@ export const getMatriculaURealTotal = async (req: Request, res: Response) => {
 
 export const getMatriculaPeriodo = async (req: Request, res: Response) => {
   try {
-    const { inicio, fin, unidad, periodo } = req.query;
+    const { inicio, fin, unidad, periodo } = req.body;
     const data = await matriculaService.getMatriculaPeriodo(unidad as string, inicio as string, fin as string, periodo as string);
     res.json(data);
   } catch (error) {
@@ -150,7 +152,7 @@ export const getMatriculaPeriodo = async (req: Request, res: Response) => {
 
 export const getMatriculaVariacion = async (req: Request, res: Response) => {
   try {
-    const { periodo } = req.query;
+    const { periodo } = req.body;
     const data = await matriculaService.getMatriculaVariacion(periodo as string);
     res.json(data);
   } catch (error) {
