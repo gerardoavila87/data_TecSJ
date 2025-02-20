@@ -32,7 +32,7 @@ export const queries = {
   getPeriodo: `
     SELECT CONCAT(dc.startYear, dc.code) AS periodo 
       FROM DateCalendars dc 
-     WHERE date_idCalendar = 79`,
+     WHERE date_idCalendar = 80`,
   getIdsFechas: `
        SELECT idFecha 
          FROM DimFecha 
