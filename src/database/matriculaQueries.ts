@@ -18,7 +18,8 @@ export const queries = {
          JOIN UserAddress ua ON ua.user_IdAddress = u.user_IdAddress
          JOIN OrgLocal ol ON ol.org_IdLocal = us.org_IdLocal
          JOIN OrgCampus oc ON oc.org_IdCampus = us.plantel 
-        WHERE us.ins =1 and us.status = 1 `,
+        WHERE us.ins =1 and us.status = 1
+         AND us.tecnm = 's';`,
   getMatriculaCoreBackup: `
           SELECT us.code AS nocontrol, u.curp AS curp, u.state AS lugarNacimiento,
           u.name AS nombre, u.firstName AS primerApellido, u.secondName AS segundoApellido,

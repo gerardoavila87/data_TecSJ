@@ -1,21 +1,25 @@
 export const queries = {
     getCaptacionCore: `
-        SELECT sh.curp, sh.name AS nombre, sh.firstName AS primerApellido, 
-               sh.secondName AS segundoApellido, sh.birthState AS lugarNacimiento, 
-               sh.sex AS genero, 'N' AS indigena, sh.extension AS unidadReal, 
-               sh.unit AS unidadOficial, sh.program AS carrera, sh.period AS periodo, 
-               'N' AS discapacidad, sh.status AS estatus, 
-               COALESCE(u3.name, u2.name) AS estudios, sh.mode AS modalidad, 
-               p.q1 AS municipio, p.o1 AS estado, sh.pago1 AS pagoExamen, 
-               sh.pago2 AS pagoInscripcion, sh.docs AS docsEntregados, 
-               sh.ins AS inscripcionCompleta, p.q4 AS medioCaptacion 
-          FROM STA.StakeHolders sh
-          JOIN QUI.Promos p ON p.curp = sh.curp
-          LEFT JOIN STA.Units u2 ON u2.code = p.q2 AND p.q2 != 'OTRO'
-          LEFT JOIN ( SELECT u1.code, u1.name 
-                    FROM STA.Units u1 
-                    WHERE u1.code = 'OTRO'
-                    LIMIT 1) u3 ON p.q2 = 'OTRO';`,
+            WITH UnitsUnicas AS ( SELECT code, MIN(name) AS name
+                                FROM STA.Units
+                                GROUP BY code
+                                )
+            SELECT sh.curp, sh.name AS nombre, sh.firstName AS primerApellido,
+                sh.secondName AS segundoApellido, sh.birthState AS lugarNacimiento,
+                sh.sex AS genero, 'N' AS indigena, CASE WHEN sh.extension='ATEMAJAC' THEN 'ATEMAJAC DE BRIZUELA' ELSE sh.extension END AS unidadReal,
+                sh.unit AS unidadOficial, sh.program AS carrera, sh.period AS periodo,
+                'N' AS discapacidad, sh.status AS estatus,
+                COALESCE(u3.name, u2.name) AS estudios, sh.mode AS modalidad,
+                p.q1 AS municipio, p.o1 AS estado, sh.pago1 AS pagoExamen, 
+                sh.pago2 AS pagoInscripcion, sh.docs AS docsEntregados, 
+                sh.ins AS inscripcionCompleta, p.q4 AS medioCaptacion 
+            FROM STA.StakeHolders sh
+            LEFT JOIN QUI.Promos p ON p.curp = sh.curp
+            LEFT JOIN UnitsUnicas u2 ON u2.code = p.q2 AND p.q2 != 'OTRO'
+            LEFT JOIN (SELECT code, name 
+                        FROM STA.Units 
+                        WHERE code = 'OTRO'
+                        LIMIT 1) u3 ON p.q2 = 'OTRO' WHERE sh.period = '2025A';`,
     getCaptacionData: `
            SELECT da.curp, da.nombre, da.primerApellido, da.segundoApellido, 
                   da.lugarNacimiento, da.genero, da.indigena, du.nombre AS unidadReal, 
@@ -33,14 +37,16 @@ export const queries = {
              JOIN DimEstatusCaptacion dec2 ON dec2.idEstatus = fc.idEstatus 
         LEFT JOIN DimEstudios de ON de.idEstudio = fc.idEstudio 
              JOIN DimModalidades dm ON dm.idModalidad = fc.idModalidad 
-        LEFT JOIN DimProcedencia dp ON dp.idProcedencia = fc.idProcedencia;`,
+        LEFT JOIN DimProcedencia dp ON dp.idProcedencia = fc.idProcedencia
+        WHERE fc.idFechaTermino IS NULL
+      AND fc.periodo = '2025A';`,
     getUltimaCaptacionAspirante: `
         SELECT MAX(idCaptacion) as idCaptacion
           FROM FactCaptacion fc 
          WHERE idAspirante = :idAspirante;`,
     upCaptacionFechaTermino: `
         UPDATE FactCaptacion
-           SET IdFechaTermino = :idFecha
+           SET idFechaTermino = :idFecha
          WHERE idCaptacion = :idCaptacion;`,
     setCaptacionData: `
         INSERT INTO FactCaptacion
@@ -91,7 +97,7 @@ export const queries = {
         GROUP BY df.idFecha;`,
     getCaptacionExamen: `
            SELECT du.nombre AS nombre, du.clave AS clave, 
-                  COUNT(fc.idCaptacion) AS aspirantes, 
+                  COUNT(fc.idCaptacion) AS registros, 
                   SUM(CASE WHEN dec2.estatus = 'EXAMEN PAGADO' THEN 1 ELSE 0 END) AS examenPagado
              FROM FactCaptacion fc
         LEFT JOIN DimUnidades du ON du.idUnidad = fc.IdUnidadReal
@@ -107,22 +113,27 @@ export const getCaptacion = (filtro?: string, unidad?: string, carreras?: string
     let selectFields = ['COUNT(fc.idCaptacion) AS cantidad'];
     let joins = [
         'LEFT JOIN DimUnidades du ON du.idUnidad = fc.IdUnidadReal',
-        'LEFT JOIN DimCarreras dc ON dc.idCarrera = fc.idCarrera'
+        'LEFT JOIN DimCarreras dc ON dc.idCarrera = fc.idCarrera',
+        'LEFT JOIN DimEstatusCaptacion dec2 ON dec2.idEstatus = fc.idEstatus'
     ];
     let whereConditions = ['fc.idFechaTermino IS NULL'];
     let groupByFields = [];
     let orderByFields = ['du.nombre'];
-
     if (filtro !== 'periodo') {
         whereConditions.push('fc.periodo = :periodo');
     }
     if (unidad || filtro === 'unidad') {
-        selectFields.unshift('du.nombre AS nombre, du.clave AS clave, du.clase');
-        groupByFields.push('fc.IdUnidadReal');
+        selectFields.unshift(`du.nombre AS nombre, du.clave AS clave, du.clase, 
+                              SUM(CASE WHEN dec2.estatus = 'EXAMEN PAGADO'
+                              THEN 1 ELSE 0 END) AS examenPagado`);
+        groupByFields.push('du.nombre');
     }
-
     if (carreras) {
-        selectFields.unshift('dc.nombre AS carrera');
+        selectFields.unshift(`dc.nombre AS programa, dc.clave AS clave,
+                              SUM(CASE WHEN dec2.estatus = 'EXAMEN PAGADO'
+                              THEN 1 ELSE 0 END) AS examenPagado,
+                              ROUND((SUM(CASE WHEN dec2.estatus = 'EXAMEN PAGADO' 
+  				              THEN 1 ELSE 0 END)/COUNT(fc.idCaptacion))*100,2) AS porcentajePagado`);
         groupByFields.push('fc.idCarrera');
         orderByFields.push('dc.nombre');
     }
@@ -172,7 +183,6 @@ export const getCaptacion = (filtro?: string, unidad?: string, carreras?: string
             break;
         case 'estatus':
             selectFields.unshift('dec2.estatus');
-            joins.push('LEFT JOIN DimEstatusCaptacion dec2 ON dec2.idEstatus = fc.idEstatus');
             groupByFields.push('fc.idEstatus');
             orderByFields.push('cantidad DESC');
             break;
@@ -224,7 +234,6 @@ export const getCaptacion = (filtro?: string, unidad?: string, carreras?: string
          GROUP BY ${groupByFields.join(', ')}
          ORDER BY ${orderByFields.join(', ')}
      `;
-
     return query;
 };
 

@@ -163,7 +163,7 @@ export const compareCaptacion = async () => {
                 }
             }
 
-            const estadoLimpio = captacion.estado.split('#')[1];
+            const estadoLimpio = captacion.estado? captacion.estado.split('#')[1] : '';
             const [idCarrera, idModalidad, idProcedencia, idUnidadReal, idUnidadOficial, idEstudio, idDiscapacidad, idEstatus] = await Promise.all([
                 getIdCarreraData(captacion.carrera),
                 getIdModalidadData(captacion.modalidad),
